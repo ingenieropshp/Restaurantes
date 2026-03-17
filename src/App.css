@@ -4,6 +4,8 @@
   --neon-pink: #ff0055;
   --dark-bg: #0d0d0d;
   --card-bg: #1a1a1a;
+  --neon-green: #25D366;
+  --neon-orange: #ff9800; 
 }
 
 body {
@@ -13,8 +15,55 @@ body {
   color: white;
 }
 
+/* --- HEADER DE ADMINISTRACIÓN --- */
+.admin-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 15px 20px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.login-pill, .user-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.3s;
+}
+
+.login-pill:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.user-pill {
+  border-color: var(--neon-pink);
+  color: white;
+}
+
+.user-pill button {
+  background: none;
+  border: none;
+  color: var(--neon-pink);
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
 .app-container {
-  padding: 40px 20px;
+  padding: 80px 20px 40px; 
   max-width: 1200px;
   margin: auto;
   text-align: center;
@@ -47,20 +96,17 @@ body {
   border-radius: 20px;
   cursor: pointer;
   transition: 0.3s;
-  font-family: inherit;
 }
 
-.category-btn:hover {
+.category-btn:hover, .category-btn.active {
   border-color: var(--neon-cyan);
-  box-shadow: 0 0 10px var(--neon-cyan);
+  box-shadow: 0 0 15px var(--neon-cyan);
 }
 
 .category-btn.active {
   background: var(--neon-cyan);
   color: black;
   font-weight: bold;
-  box-shadow: 0 0 15px var(--neon-cyan);
-  border-color: var(--neon-cyan);
 }
 
 /* BUSCADOR NEÓN */
@@ -76,64 +122,147 @@ body {
   outline: none;
   box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
   margin-bottom: 50px;
-  transition: 0.3s;
 }
 
-.search-input:focus {
-  box-shadow: 0 0 25px var(--neon-cyan);
-}
-
-/* LISTA DE RESTAURANTES (GRILLA) */
+/* LISTA Y TARJETAS */
 .restaurant-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 30px;
 }
 
-/* TARJETA DE CADA RESTAURANTE */
 .restaurant-card {
+  position: relative;
   background: var(--card-bg);
-  padding: 30px;
+  padding: 40px 30px;
   border-radius: 20px;
   border: 1px solid #333;
   cursor: pointer;
   transition: all 0.4s ease;
-  opacity: 0; /* Para la animación */
-}
-
-.restaurant-card.aparecer {
-  opacity: 1;
 }
 
 .restaurant-card:hover {
   border-color: var(--neon-cyan);
   box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
-  transform: scale(1.03);
+  transform: translateY(-5px);
 }
+
+/* --- BOTONES DE ACCIÓN EN TARJETA --- */
+
+/* Favoritos (Arriba Derecha) */
+.fav-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.2s ease;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
+}
+
+.fav-btn:hover {
+  transform: scale(1.2);
+}
+
+.fav-btn.active {
+  filter: drop-shadow(0 0 10px var(--neon-pink));
+}
+
+/* Compartir (Abajo Derecha) */
+.share-btn {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  color: white;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  z-index: 5;
+}
+
+.share-btn:hover {
+  background: var(--neon-cyan);
+  color: black;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px var(--neon-cyan);
+}
+
+/* Admin (Arriba Izquierda) */
+.admin-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #555;
+  color: white;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  z-index: 5;
+}
+
+.admin-btn:hover {
+  border-color: var(--neon-cyan);
+  transform: rotate(90deg);
+  background: #000;
+}
+
+/* --- ESTADOS DINÁMICOS --- */
+.status-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot.open { background-color: #00ff88; box-shadow: 0 0 8px #00ff88; }
+.dot.closed { background-color: #ff4444; box-shadow: 0 0 8px #ff4444; }
+.dot.warning { background-color: var(--neon-orange); box-shadow: 0 0 10px var(--neon-orange); }
+
+.status-text.open { color: #00ff88; }
+.status-text.closed { color: #ff4444; }
+.status-text.warning { color: var(--neon-orange); font-weight: bold; }
 
 .restaurant-name {
   color: var(--neon-cyan);
   font-size: 1.8rem;
-  margin: 0 0 10px 0;
+  margin: 10px 0;
+  text-shadow: 0 0 5px rgba(0, 243, 255, 0.2);
 }
 
-.restaurant-info {
-  color: #aaa;
-  font-size: 1.1rem;
-}
-
-/* MODAL (VENTANA FLOTANTE) */
+/* MODALES */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(8px);
 }
 
 .modal-content {
@@ -141,77 +270,30 @@ body {
   width: 90%;
   max-width: 450px;
   border-radius: 25px;
-  padding: 0 0 30px 0;
   border: 1px solid #444;
   overflow: hidden;
   position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
 }
 
-.modal-img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  border-bottom: 4px solid var(--neon-cyan);
+.badge-cat {
+  background: rgba(0, 243, 255, 0.1);
+  color: var(--neon-cyan);
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  border: 1px solid rgba(0, 243, 255, 0.3);
 }
 
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(0,0,0,0.6);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.order-btn {
-  background: linear-gradient(45deg, #25D366, #128C7E);
-  color: white;
-  border: none;
-  padding: 15px 40px;
-  border-radius: 50px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 20px;
-  box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
-}
-
-/* ANIMACIÓN DE CARGA (SPINNER) */
-.neon-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #222;
-  border-top: 5px solid var(--neon-cyan);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: auto;
-}
-
-@keyframes spin { 100% { transform: rotate(360deg); } }
-
-/* --- AJUSTES PARA CELULARES --- */
+/* RESPONSIVO */
 @media (max-width: 600px) {
+  .title { font-size: 2.2rem; }
   .category-container {
-    display: flex;
-    overflow-x: auto; /* Permite deslizar a los lados */
     justify-content: flex-start;
+    overflow-x: auto;
     padding: 10px;
-    gap: 8px;
-    white-space: nowrap; /* Evita que los botones se bajen */
-    -webkit-overflow-scrolling: touch; /* Suavidad en iPhone */
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
   }
-  
-  /* Oculta la barra de scroll para que se vea más limpio */
-  .category-container::-webkit-scrollbar {
-    display: none;
-  }
-
-  .title {
-    font-size: 2rem;
-  }
+  .category-container::-webkit-scrollbar { display: none; }
 }
