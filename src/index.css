@@ -353,3 +353,29 @@ h1 {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* --- VISOR DE IMAGEN (LIGHTBOX) --- */
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95); /* Fondo casi negro */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000; /* Por encima de todo */
+  cursor: zoom-out;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 10px;
+  box-shadow: 0 0 30px var(--neon-cyan);
+  object-fit: contain;
+  animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}

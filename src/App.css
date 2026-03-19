@@ -1,4 +1,4 @@
-/* --- CONFIGURACIÓN DE COLORES TURBO --- */
+/* --- CONFIGURACIÓN DE COLORES (SE MANTIENEN) --- */
 :root {
   --neon-cyan: #00f3ff;
   --neon-pink: #ff0055;
@@ -16,52 +16,76 @@ body {
   color: white;
 }
 
-/* --- BOTÓN FLOTANTE (+) --- */
-.fab-button {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--neon-cyan), #00d2ff);
-  color: #000;
-  border: none;
-  font-size: 35px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
-  z-index: 1000;
+/* --- MEJORA DEL FORMULARIO DE EDICIÓN (ADMIN) --- */
+/* Este bloque arregla lo que se ve en tu foto */
+.admin-editor-grid {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 15px;
+  margin-top: 10px;
 }
 
-.fab-button:hover {
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 0 30px var(--neon-cyan);
+.admin-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
 }
 
-/* --- HEADER DE ADMINISTRACIÓN --- */
-.exit-admin-btn {
-  background: var(--neon-pink);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
-  cursor: pointer;
+.admin-input-group label {
+  font-size: 0.8rem;
+  color: var(--neon-cyan);
   font-weight: bold;
-  margin-bottom: 20px;
-  box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+  text-transform: uppercase;
+}
+
+.admin-editor-grid input {
+  width: 100%;
+  padding: 10px;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: white;
+  outline: none;
   transition: 0.3s;
 }
 
-.exit-admin-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px var(--neon-pink);
+.admin-editor-grid input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
 }
 
+.admin-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Botones dentro del modo edición */
+.admin-save-btn {
+  background: var(--neon-green);
+  color: black;
+  font-weight: bold;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.admin-cancel-btn {
+  background: #444;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* --- HEADER Y CONTENEDOR --- */
 .app-container {
   padding: 40px 20px; 
   max-width: 1200px;
@@ -78,7 +102,26 @@ body {
   text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
 }
 
-/* --- CATEGORÍAS Y BUSCADOR --- */
+/* --- BUSCADOR Y CATEGORÍAS --- */
+.search-input {
+  width: 90%;
+  max-width: 500px;
+  padding: 15px 25px;
+  border-radius: 50px;
+  border: 2px solid var(--neon-cyan);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 1.1rem;
+  outline: none;
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+  margin-bottom: 50px;
+  transition: 0.3s;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 25px var(--neon-cyan);
+}
+
 .category-container {
   display: flex;
   justify-content: center;
@@ -99,6 +142,7 @@ body {
 
 .category-btn:hover, .category-btn.active {
   border-color: var(--neon-cyan);
+  background: rgba(0, 243, 255, 0.1);
   box-shadow: 0 0 15px var(--neon-cyan);
 }
 
@@ -108,47 +152,31 @@ body {
   font-weight: bold;
 }
 
-.search-input {
-  width: 90%;
-  max-width: 500px;
-  padding: 15px 25px;
-  border-radius: 50px;
-  border: 2px solid var(--neon-cyan);
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 1.1rem;
-  outline: none;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-  margin-bottom: 50px;
-}
-
-/* --- LISTA Y TARJETAS --- */
+/* --- TARJETAS --- */
 .restaurant-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 30px;
 }
 
 .restaurant-card {
-  position: relative;
   background: var(--card-bg);
-  border-radius: 20px;
+  border-radius: 25px;
   border: 1px solid #333;
-  cursor: pointer;
-  transition: all 0.4s ease;
-  overflow: hidden; 
+  overflow: hidden;
+  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
 }
 
 .restaurant-card:hover {
+  transform: translateY(-10px);
   border-color: var(--neon-cyan);
-  box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
-  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 243, 255, 0.2);
 }
 
-/* --- MEDIA Y ACCIONES --- */
 .card-media {
+  height: 190px;
   position: relative;
-  height: 180px;
 }
 
 .card-header-img {
@@ -157,153 +185,509 @@ body {
   object-fit: cover;
 }
 
-.fav-btn {
-  position: absolute;
-  top: 15px; right: 15px;
-  background: none; border: none;
-  font-size: 1.6rem;
-  cursor: pointer;
-  z-index: 5;
+.card-info {
+  padding: 20px;
 }
 
-.share-btn {
-  position: absolute;
-  top: 15px; left: 15px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--neon-cyan);
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
+/* --- ESTADOS (ABIERTO/CERRADO) --- */
+.status-badge {
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: white;
-  z-index: 5;
-  transition: 0.3s;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-/* --- MODALES Y TABS --- */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot.open { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+.dot.closed { background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
+
+/* --- MODAL Y TABS --- */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.9);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  backdrop-filter: blur(8px);
 }
 
 .modal-content {
-  background: #151515;
-  width: 95%;
-  max-width: 450px;
-  border-radius: 25px;
-  border: 1px solid #444;
-  overflow: hidden;
-  position: relative;
-  max-height: 90vh;
+  background: #111;
+  width: 90%;
+  max-width: 480px;
+  border-radius: 30px;
+  border: 1px solid #333;
+  max-height: 85vh;
   overflow-y: auto;
 }
 
-.modal-body {
-  padding: 20px;
+/* --- BOTÓN FLOTANTE --- */
+.fab-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  color: black;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  box-shadow: 0 0 20px var(--neon-cyan);
+  z-index: 1000;
+  transition: 0.3s;
 }
 
-/* --- CONTENIDO DE LA PESTAÑA DE MENÚ (ACTUALIZADO) --- */
-.menu-preview-img {
-  width: 100%;
+.fab-button:hover {
+  transform: scale(1.1) rotate(90deg);
+}
+
+/* --- ANIMACIÓN --- */
+.aparecer {
+  animation: slideIn 0.4s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- BOTÓN SALIR ADMIN (RECUPERADO) --- */
+.exit-admin-btn {
+  background: var(--neon-pink);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 20px;
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exit-admin-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px var(--neon-pink);
+  filter: brightness(1.1);
+}
+
+/* --- AJUSTE PARA LOS INPUTS QUE SE VEÍAN MAL EN LA FOTO --- */
+.admin-editor-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 12px;
-  border: 1px solid var(--neon-cyan);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-  margin-top: 10px;
 }
 
-.menu-preview-img:hover {
-  transform: scale(1.02);
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+.admin-editor-grid input {
+  width: 100%;
+  padding: 8px 12px;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9rem;
 }
 
-.tab-content p {
-  font-style: italic;
-  opacity: 0.8;
+.admin-editor-grid input:focus {
+  border-color: var(--neon-cyan);
+  outline: none;
 }
 
-/* --- BOTONES DE ACCIÓN DINÁMICOS (ACTUALIZADO) --- */
+/* Para que "Abre" y "Cierra" no se amontonen */
+.admin-hours {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #bbb;
+  margin-top: 5px;
+}
+
+.admin-hours input {
+  width: 60px; /* Tamaño pequeño para los números de hora */
+  text-align: center;
+}
+
+/* --- OVERLAY DE ACCIONES (EL QUE APARECE SOBRE LA FOTO) --- */
+.admin-actions-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.restaurant-card:hover .admin-actions-overlay {
+  opacity: 1;
+}
+
+.admin-icon-btn {
+  background: white;
+  color: black;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.admin-icon-btn.del {
+  background: var(--neon-pink);
+  color: white;
+}
+
+/* --- BOTONES DE REDES SOCIALES Y MAPA --- */
 .action-buttons-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   margin-top: 20px;
+  padding: 0 10px;
 }
 
 .maps-btn, .ig-btn, .fb-btn {
-  flex: 1 1 100px; 
+  flex: 1 1 120px; /* Se ajustan al ancho disponible */
   min-width: 100px;
-  max-width: 150px;
-  padding: 12px 5px;
+  max-width: 160px;
+  padding: 12px 8px;
   border-radius: 12px;
   font-weight: bold;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
   border: none;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  transition: all 0.3s;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.fb-btn { background: #1877F2; }
-.ig-btn { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-.maps-btn { background: #4285F4; }
+/* Colores de marca específicos */
+.fb-btn { 
+  background: #1877F2; 
+  box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+}
 
+.ig-btn { 
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+  box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);
+}
+
+.maps-btn { 
+  background: #4285F4; 
+  box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+}
+
+/* Efectos al pasar el mouse */
 .maps-btn:hover, .ig-btn:hover, .fb-btn:hover {
-  transform: translateY(-3px);
-  filter: brightness(1.2);
-  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+  transform: translateY(-4px);
+  filter: brightness(1.15);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.15);
 }
 
-/* --- OTROS ESTILOS --- */
+/* Ajuste para los iconos dentro de los botones */
+.maps-btn span, .ig-btn span, .fb-btn span {
+  font-size: 1.2rem;
+}
+
+/* --- ESTILO EXTRA: BOTÓN DE PEDIR WHATSAPP --- */
 .order-btn {
-  width: 100%;
-  margin-top: 15px;
-  padding: 15px;
+  width: calc(100% - 20px);
+  margin: 20px 10px;
+  padding: 16px;
   background: var(--neon-green);
   color: white;
   border: none;
   border-radius: 15px;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
+  box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
   transition: 0.3s;
 }
 
-.aparecer {
-  animation: fadeIn 0.4s ease-in-out;
+.order-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px var(--neon-green);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 600px) {
-  .title { font-size: 2.2rem; }
-  .fab-button { width: 55px; height: 55px; bottom: 20px; right: 20px; }
-}
-
-.card-info p {
+/* --- BOTÓN DE CERRAR MODAL (X) --- */
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 35px;
+  height: 35px;
+  background-color: var(--neon-pink); /* Usamos tu rosa neón */
+  color: white;
+  border: none;
+  border-radius: 50%; /* Lo hace circular */
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.5); /* Brillo neón */
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  transform: scale(1.1) rotate(90deg); /* Gira un poco al pasar el mouse */
+  box-shadow: 0 0 25px var(--neon-pink);
+  background-color: #ff3377; /* Un rosa un poco más claro */
+}
+
+/* Ajuste para el visor de imagen (Lightbox) si usas una clase distinta */
+.close-lightbox {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  background: var(--neon-pink);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 0 20px var(--neon-pink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3001;
+}
+
+/* --- MEJORA ADICIONAL: BARRA DE DESPLAZAMIENTO (SCROLLBAR) --- */
+/* Para que la barra gris de la derecha no se vea fea */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #111;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--neon-cyan);
+  border-radius: 10px;
+  box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+/* --- ANIMACIÓN DE ENTRADA PARA EL BOTÓN X --- */
+@keyframes popIn {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.close-btn, .close-lightbox {
+  /* Aplicamos la animación: dura 0.4s y tiene un efecto elástico */
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  /* Retrasamos un poco la aparición para que el modal abra primero */
+  animation-delay: 0.2s; 
+}
+
+/* --- REPASO DEL ESTILO FINAL DEL BOTÓN --- */
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 38px;
+  height: 38px;
+  background-color: var(--neon-pink);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-family: Arial, sans-serif; /* Para que la X sea limpia */
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 15px var(--neon-pink);
+  z-index: 2100;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: #ff3377;
+  transform: scale(1.1);
+  box-shadow: 0 0 25px var(--neon-pink);
+}
+
+.pdf-download-btn {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 12px 25px;
+  background: #ff4b2b;
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: bold;
+  box-shadow: 0 0 15px rgba(255, 75, 43, 0.5);
+  transition: 0.3s;
+}
+.pdf-download-btn:hover { transform: scale(1.05); background: #ff416c; }
+
+.pdf-btn-download:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(255, 75, 43, 0.7);
+}
+
+.pdf-container p {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.pdf-viewer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Ajuste para que el iframe no se rompa en pantallas pequeñas */
+@media (max-width: 600px) {
+  iframe {
+    height: 400px;
+  }
+}
+
+.pdf-download-btn {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: linear-gradient(45deg, #00f2ff, #0072ff);
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px var(--neon-cyan);
+  transition: 0.3s;
+}
+
+.pdf-download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px var(--neon-cyan);
+}
+
+/* Grupo de botones de menú en admin */
+.admin-menu-group {
+  display: flex;
+  align-items: center;
   gap: 5px;
-  color: var(--neon-cyan);
-  font-size: 0.9rem;
-  transition: transform 0.2s;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid var(--neon-cyan);
+}
+
+.admin-icon-btn.del-menu {
+  background: #ff4b2b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: 0.2s;
+}
+
+.admin-icon-btn.del-menu:hover {
+  background: #ff0000;
+  transform: scale(1.1);
+}
+
+/* Ajuste para que el texto de "Cambiar Menú" quepa bien */
+.admin-icon-btn.menu {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.edit-cats-btn {
+  background: #ffcc00;
+  color: #000;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 10px;
+  transition: 0.3s;
+}
+
+.edit-cats-btn:hover {
+  background: #fff;
+  transform: scale(1.05);
+}
+
+/* Botón para eliminar categoría (X roja) */
+.del-cat-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4d4d;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid white;
+  z-index: 5;
+}
+
+/* Botón especial para añadir categorías */
+.add-cat-btn {
+  border: 1px dashed #00f2ff !important;
+  background: rgba(0, 242, 255, 0.1) !important;
+  color: #00f2ff !important;
+}
+
+.add-cat-btn:hover {
+  background: #00f2ff !important;
+  color: #1a1b22 !important;
 }
