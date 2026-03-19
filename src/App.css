@@ -16,8 +16,49 @@ body {
   color: white;
 }
 
+/* --- MEJORA DEL TÍTULO (NUEVO AJUSTE PARA MÓVIL) --- */
+.title {
+  font-size: 2.2rem; /* Tamaño base para móvil */
+  font-weight: 800;
+  text-align: center;
+  color: #fff;
+  text-transform: uppercase;
+  margin: 20px 0 40px 0;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  /* Efecto Neón Azul de la foto */
+  text-shadow: 
+    0 0 10px rgba(0, 243, 255, 0.8),
+    0 0 20px rgba(0, 243, 255, 0.4),
+    0 0 30px rgba(0, 243, 255, 0.2);
+  display: flex;
+  flex-direction: column; /* Apila "Restaurantes" y "Turbo" en vertical */
+  align-items: center;
+  gap: 5px;
+}
+
+.title span {
+  font-size: 3.2rem; /* "TURBO" más grande */
+  background: linear-gradient(to bottom, #fff, var(--neon-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 15px rgb(0, 0, 0));
+}
+
+/* Ajuste para PC */
+@media (min-width: 768px) {
+  .title {
+    flex-direction: row; /* En línea para pantallas grandes */
+    justify-content: center;
+    font-size: 3rem;
+    gap: 15px;
+  }
+  .title span {
+    font-size: 3.5rem;
+  }
+}
+
 /* --- MEJORA DEL FORMULARIO DE EDICIÓN (ADMIN) --- */
-/* Este bloque arregla lo que se ve en tu foto */
 .admin-editor-grid {
   display: flex;
   flex-direction: column;
@@ -91,15 +132,6 @@ body {
   max-width: 1200px;
   margin: auto;
   text-align: center;
-}
-
-.title {
-  font-size: 3rem;
-  margin-bottom: 30px;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: #fff;
-  text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
 }
 
 /* --- BUSCADOR Y CATEGORÍAS --- */
@@ -262,7 +294,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- BOTÓN SALIR ADMIN (RECUPERADO) --- */
+/* --- BOTÓN SALIR ADMIN --- */
 .exit-admin-btn {
   background: var(--neon-pink);
   color: white;
@@ -285,31 +317,6 @@ body {
   filter: brightness(1.1);
 }
 
-/* --- AJUSTE PARA LOS INPUTS QUE SE VEÍAN MAL EN LA FOTO --- */
-.admin-editor-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-}
-
-.admin-editor-grid input {
-  width: 100%;
-  padding: 8px 12px;
-  background: #222;
-  border: 1px solid #444;
-  border-radius: 6px;
-  color: white;
-  font-size: 0.9rem;
-}
-
-.admin-editor-grid input:focus {
-  border-color: var(--neon-cyan);
-  outline: none;
-}
-
 /* Para que "Abre" y "Cierra" no se amontonen */
 .admin-hours {
   display: flex;
@@ -322,11 +329,11 @@ body {
 }
 
 .admin-hours input {
-  width: 60px; /* Tamaño pequeño para los números de hora */
+  width: 60px; 
   text-align: center;
 }
 
-/* --- OVERLAY DE ACCIONES (EL QUE APARECE SOBRE LA FOTO) --- */
+/* --- OVERLAY DE ACCIONES --- */
 .admin-actions-overlay {
   position: absolute;
   inset: 0;
@@ -371,7 +378,7 @@ body {
 }
 
 .maps-btn, .ig-btn, .fb-btn {
-  flex: 1 1 120px; /* Se ajustan al ancho disponible */
+  flex: 1 1 120px;
   min-width: 100px;
   max-width: 160px;
   padding: 12px 8px;
@@ -388,7 +395,6 @@ body {
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Colores de marca específicos */
 .fb-btn { 
   background: #1877F2; 
   box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
@@ -404,19 +410,12 @@ body {
   box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
 }
 
-/* Efectos al pasar el mouse */
 .maps-btn:hover, .ig-btn:hover, .fb-btn:hover {
   transform: translateY(-4px);
   filter: brightness(1.15);
-  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.15);
 }
 
-/* Ajuste para los iconos dentro de los botones */
-.maps-btn span, .ig-btn span, .fb-btn span {
-  font-size: 1.2rem;
-}
-
-/* --- ESTILO EXTRA: BOTÓN DE PEDIR WHATSAPP --- */
+/* --- BOTÓN DE PEDIR WHATSAPP --- */
 .order-btn {
   width: calc(100% - 20px);
   margin: 20px 10px;
@@ -442,100 +441,12 @@ body {
   position: absolute;
   top: 15px;
   right: 15px;
-  width: 35px;
-  height: 35px;
-  background-color: var(--neon-pink); /* Usamos tu rosa neón */
-  color: white;
-  border: none;
-  border-radius: 50%; /* Lo hace circular */
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  box-shadow: 0 0 15px rgba(255, 0, 85, 0.5); /* Brillo neón */
-  transition: all 0.3s ease;
-}
-
-.close-btn:hover {
-  transform: scale(1.1) rotate(90deg); /* Gira un poco al pasar el mouse */
-  box-shadow: 0 0 25px var(--neon-pink);
-  background-color: #ff3377; /* Un rosa un poco más claro */
-}
-
-/* Ajuste para el visor de imagen (Lightbox) si usas una clase distinta */
-.close-lightbox {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 45px;
-  height: 45px;
-  background: var(--neon-pink);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  cursor: pointer;
-  box-shadow: 0 0 20px var(--neon-pink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3001;
-}
-
-/* --- MEJORA ADICIONAL: BARRA DE DESPLAZAMIENTO (SCROLLBAR) --- */
-/* Para que la barra gris de la derecha no se vea fea */
-.modal-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal-content::-webkit-scrollbar-track {
-  background: #111;
-  border-radius: 10px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-  background: var(--neon-cyan);
-  border-radius: 10px;
-  box-shadow: 0 0 10px var(--neon-cyan);
-}
-
-/* --- ANIMACIÓN DE ENTRADA PARA EL BOTÓN X --- */
-@keyframes popIn {
-  0% {
-    transform: scale(0) rotate(-45deg);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.2) rotate(10deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
-
-.close-btn, .close-lightbox {
-  /* Aplicamos la animación: dura 0.4s y tiene un efecto elástico */
-  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-  /* Retrasamos un poco la aparición para que el modal abra primero */
-  animation-delay: 0.2s; 
-}
-
-/* --- REPASO DEL ESTILO FINAL DEL BOTÓN --- */
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
   width: 38px;
   height: 38px;
   background-color: var(--neon-pink);
   color: white;
   border: none;
   border-radius: 50%;
-  font-family: Arial, sans-serif; /* Para que la X sea limpia */
   font-size: 1.2rem;
   display: flex;
   align-items: center;
@@ -543,52 +454,13 @@ body {
   cursor: pointer;
   box-shadow: 0 0 15px var(--neon-pink);
   z-index: 2100;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  animation-delay: 0.2s; 
 }
 
-.close-btn:hover {
-  background-color: #ff3377;
-  transform: scale(1.1);
-  box-shadow: 0 0 25px var(--neon-pink);
-}
-
-.pdf-download-btn {
-  display: inline-block;
-  margin-top: 15px;
-  padding: 12px 25px;
-  background: #ff4b2b;
-  color: white;
-  text-decoration: none;
-  border-radius: 50px;
-  font-weight: bold;
-  box-shadow: 0 0 15px rgba(255, 75, 43, 0.5);
-  transition: 0.3s;
-}
-.pdf-download-btn:hover { transform: scale(1.05); background: #ff416c; }
-
-.pdf-btn-download:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px rgba(255, 75, 43, 0.7);
-}
-
-.pdf-container p {
-  color: #fff;
-  margin-bottom: 10px;
-}
-
-.pdf-viewer-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-/* Ajuste para que el iframe no se rompa en pantallas pequeñas */
-@media (max-width: 600px) {
-  iframe {
-    height: 400px;
-  }
+@keyframes popIn {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 .pdf-download-btn {
@@ -606,62 +478,7 @@ body {
   transition: 0.3s;
 }
 
-.pdf-download-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px var(--neon-cyan);
-}
-
-/* Grupo de botones de menú en admin */
-.admin-menu-group {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 5px;
-  border-radius: 8px;
-  border: 1px solid var(--neon-cyan);
-}
-
-.admin-icon-btn.del-menu {
-  background: #ff4b2b;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 2px 8px;
-  cursor: pointer;
-  font-size: 0.7rem;
-  transition: 0.2s;
-}
-
-.admin-icon-btn.del-menu:hover {
-  background: #ff0000;
-  transform: scale(1.1);
-}
-
-/* Ajuste para que el texto de "Cambiar Menú" quepa bien */
-.admin-icon-btn.menu {
-  font-size: 0.75rem;
-  white-space: nowrap;
-}
-
-.edit-cats-btn {
-  background: #ffcc00;
-  color: #000;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-left: 10px;
-  transition: 0.3s;
-}
-
-.edit-cats-btn:hover {
-  background: #fff;
-  transform: scale(1.05);
-}
-
-/* Botón para eliminar categoría (X roja) */
+/* Botón para eliminar categoría */
 .del-cat-badge {
   position: absolute;
   top: -6px;
@@ -685,9 +502,4 @@ body {
   border: 1px dashed #00f2ff !important;
   background: rgba(0, 242, 255, 0.1) !important;
   color: #00f2ff !important;
-}
-
-.add-cat-btn:hover {
-  background: #00f2ff !important;
-  color: #1a1b22 !important;
 }

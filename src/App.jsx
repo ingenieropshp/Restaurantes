@@ -178,7 +178,9 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1 className="title">Restaurantes Turbo 🌴</h1>
+      <h1 className="title">
+             RESTAURANTES <span>TURBO 🌴</span>
+                </h1>
       
       {esAdmin && (
         <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px'}}>
