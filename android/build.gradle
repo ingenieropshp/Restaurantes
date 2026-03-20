@@ -30,7 +30,8 @@ task clean(type: Delete) {
 
 subprojects {
     tasks.withType(JavaCompile) {
-        // Esto es más potente que sourceCompatibility y suele forzar al servidor a usar el JDK 21
-        options.release.set(21)
+        // Usamos la forma estándar que recomendó el log de error
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
