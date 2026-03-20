@@ -16,6 +16,19 @@ function App() {
   const [esAdmin, setEsAdmin] = useState(false);
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
 
+  // --- LÓGICA DE TEMA (MODO CLARO/OSCURO) ---
+  const [tema, setTema] = useState(localStorage.getItem("tema_turbo") || "dark");
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', tema);
+    localStorage.setItem("tema_turbo", tema);
+  }, [tema]);
+
+  const toggleTema = () => {
+    setTema(tema === "dark" ? "light" : "dark");
+    sonidoPop.play().catch(() => {}); 
+  };
+
   // --- Categorías dinámicas ---
   const [categorias, setCategorias] = useState(["Todos", "Favoritos"]);
 
@@ -51,7 +64,6 @@ function App() {
     if (!nueva || categorias.includes(nueva)) return;
     const nuevaLista = [...categorias];
     const indexFav = nuevaLista.indexOf("Favoritos");
-    // Insertar antes de "Favoritos" para que este siempre quede al final
     if (indexFav !== -1) nuevaLista.splice(indexFav, 0, nueva);
     else nuevaLista.push(nueva);
     await guardarCategorias(nuevaLista);
@@ -101,6 +113,7 @@ function App() {
         nombre: nombre,
         categoria: categorias[1] || "General", 
         zona: "Turbo, Antioquia",
+        mapsUrl: "", // Nuevo campo
         telefono: "57",
         imagenUrl: "",
         menuUrl: "",
@@ -157,6 +170,8 @@ function App() {
   useEffect(() => { 
     obtenerDatos(); 
     obtenerCategorias(); 
+    const timer = setInterval(() => setHoraActual(new Date()), 60000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -178,146 +193,167 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1 className="title">
-             RESTAURANTES <span>TURBO 🌴</span>
-                </h1>
-      
-      {esAdmin && (
-        <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px'}}>
-           <button className="exit-admin-btn" onClick={() => setEsAdmin(false)}>Salir Admin 🔒</button>
-        </div>
-      )}
+      {/* BOTÓN MODO OSCURO/CLARO */}
+      <button className="theme-toggle-btn" onClick={toggleTema} title="Cambiar modo">
+        {tema === "dark" ? "☀️" : "🌙"}
+      </button>
 
-      <div className="category-container">
-        {categorias.map(cat => (
-          <div key={cat} style={{position: 'relative', display: 'inline-block'}}>
-            <button 
-              className={`category-btn ${filtroCategoria === cat ? 'active' : ''}`} 
-              onClick={() => setFiltroCategoria(cat)}
-            >
-              {cat === "Favoritos" ? `❤️ ${cat}` : cat}
-            </button>
-            {esAdmin && cat !== "Todos" && cat !== "Favoritos" && (
-              <span className="del-cat-badge" onClick={(e) => eliminarCategoria(e, cat)}>×</span>
+      <h1 className="title">
+        RESTAURANTES <span>TURBO 🌴</span>
+      </h1>
+
+      {/* --- LÓGICA DE CARGA --- */}
+      {cargando ? (
+        <div className="loader-container">
+          <div className="spinner"></div>
+          <p>Cargando sabores...</p>
+        </div>
+      ) : (
+        <>
+          {esAdmin && (
+            <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px'}}>
+               <button className="exit-admin-btn" onClick={() => setEsAdmin(false)}>Salir Admin 🔒</button>
+            </div>
+          )}
+
+          <div className="category-container">
+            {categorias.map(cat => (
+              <div key={cat} style={{position: 'relative', display: 'inline-block'}}>
+                <button 
+                  className={`category-btn ${filtroCategoria === cat ? 'active' : ''}`} 
+                  onClick={() => setFiltroCategoria(cat)}
+                >
+                  {cat === "Favoritos" ? `❤️ ${cat}` : cat}
+                </button>
+                {esAdmin && cat !== "Todos" && cat !== "Favoritos" && (
+                  <span className="del-cat-badge" onClick={(e) => eliminarCategoria(e, cat)}>×</span>
+                )}
+              </div>
+            ))}
+            {esAdmin && (
+              <button className="category-btn add-cat-btn" onClick={añadirCategoria}>+ Nueva</button>
             )}
           </div>
-        ))}
-        {esAdmin && (
-          <button className="category-btn add-cat-btn" onClick={añadirCategoria}>+ Nueva</button>
-        )}
-      </div>
 
-      <input 
-        type="text" className="search-input" placeholder="¿Qué quieres comer hoy?..." 
-        value={busqueda} 
-        onChange={(e) => {
-          setBusqueda(e.target.value);
-          if (e.target.value === "admin123") { setEsAdmin(true); setBusqueda(""); alert("Modo Admin Activo 🛠️"); }
-        }} 
-      />
+          <input 
+            type="text" className="search-input" placeholder="¿Qué quieres comer hoy?..." 
+            value={busqueda} 
+            onChange={(e) => {
+              setBusqueda(e.target.value);
+              if (e.target.value === "admin123") { setEsAdmin(true); setBusqueda(""); alert("Modo Admin Activo 🛠️"); }
+            }} 
+          />
 
-      <div className="restaurant-list">
-        {listaFiltrada.map((res) => {
-          const estado = obtenerEstadoEnVivo(res.hAperturaRaw, res.hCierreRaw);
-          return (
-            <div key={res.id} className="restaurant-card aparecer" onClick={() => { if(!esAdmin) { setSeleccionado(res); setActiveTab('info'); } }}>
-              <div className="card-media">
-                <img src={res.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="card-header-img" alt={res.nombre} />
-                
-                {esAdmin ? (
-                  <div className="admin-actions-overlay">
-                    <label className="admin-icon-btn"> 📷 Principal
-                      <input type="file" onChange={(e) => subirImagenCloudinary(e, res.id, "imagenUrl")} style={{ display: 'none' }} />
-                    </label>
-
-                    <div className="admin-menu-group">
-                      <label className="admin-icon-btn menu"> 📑 {res.menuUrl ? "Cambiar Menú" : "Subir Menú"}
-                        <input 
-                          type="file" 
-                          accept="image/*,application/pdf" 
-                          onChange={(e) => subirImagenCloudinary(e, res.id, "menuUrl")} 
-                          style={{ display: 'none' }} 
-                        />
-                      </label>
-                      
-                      {res.menuUrl && (
-                        <button 
-                          className="admin-icon-btn del-menu" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if(window.confirm("¿Eliminar el archivo del menú?")) {
-                              actualizarDato(res.id, "menuUrl", ""); 
-                              alert("Menú eliminado 🗑️");
-                            }
-                          }}
-                          title="Eliminar Menú"
-                        >
-                          ❌
-                        </button>
-                      )}
-                    </div>
-
-                    <button className="admin-icon-btn del" onClick={(e) => eliminarRestaurante(e, res.id, res.nombre)}>🗑️ Restaurante</button>
-                  </div>
-                ) : (
-                  <>
-                    <button className={`fav-btn ${favoritos.includes(res.id) ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); favoritos.includes(res.id) ? setFavoritos(favoritos.filter(f => f !== res.id)) : setFavoritos([...favoritos, res.id]); }}>
-                      {favoritos.includes(res.id) ? '❤️' : '🤍'}
-                    </button>
-                    <button className="share-btn" onClick={(e) => { 
-                      e.stopPropagation(); 
-                      const textoACompartir = `¡Mira este restaurante en Turbo! 🌴\n\n*${res.nombre}*\n📍 Zona: ${res.zona || 'Turbo'}\n🍴 Categoría: ${res.categoria}`;
-                      const urlApp = window.location.href;
-                      if (navigator.share) {
-                        navigator.share({ title: res.nombre, text: textoACompartir, url: urlApp }).catch(() => console.log("Error")); 
-                      } else {
-                        window.open(`https://wa.me/?text=${encodeURIComponent(textoACompartir + "\n" + urlApp)}`, '_blank');
-                      }
-                    }}>🔗</button>
-                  </>
-                )}
-              </div>
-
-              <div className="card-info">
-                {esAdmin ? (
-                  <div className="admin-editor-grid" onClick={e => e.stopPropagation()}>
-                    <input type="text" defaultValue={res.nombre} onBlur={e => actualizarDato(res.id, "nombre", e.target.value)} placeholder="Nombre" />
+          <div className="restaurant-list">
+            {listaFiltrada.map((res) => {
+              const estado = obtenerEstadoEnVivo(res.hAperturaRaw, res.hCierreRaw);
+              return (
+                <div key={res.id} className="restaurant-card aparecer" onClick={() => { if(!esAdmin) { setSeleccionado(res); setActiveTab('info'); } }}>
+                  <div className="card-media">
+                    <img src={res.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="card-header-img" alt={res.nombre} />
                     
-                    <select 
-                      value={res.categoria} 
-                      onChange={e => actualizarDato(res.id, "categoria", e.target.value)}
-                      style={{background: '#1a1b22', color: 'white', border: '1px solid #00f2ff', borderRadius: '5px', padding: '5px'}}
-                    >
-                      {categorias.filter(c => c !== "Todos" && c !== "Favoritos").map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
+                    {esAdmin ? (
+                      <div className="admin-actions-overlay">
+                        <label className="admin-icon-btn"> 📷 Principal
+                          <input type="file" onChange={(e) => subirImagenCloudinary(e, res.id, "imagenUrl")} style={{ display: 'none' }} />
+                        </label>
 
-                    <input type="text" defaultValue={res.facebookUrl} onBlur={e => actualizarDato(res.id, "facebookUrl", e.target.value)} placeholder="Link Facebook" />
-                    <input type="text" defaultValue={res.instagramUrl} onBlur={e => actualizarDato(res.id, "instagramUrl", e.target.value)} placeholder="Link Instagram" />
-                    <input type="text" defaultValue={res.telefono} onBlur={e => actualizarDato(res.id, "telefono", e.target.value)} placeholder="Tel (57...)" />
-                    <div className="admin-hours">
-                      Abre: <input type="number" defaultValue={res.hAperturaRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, apertura: parseInt(e.target.value) })} />
-                      Cierra: <input type="number" defaultValue={res.hCierreRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, cierre: parseInt(e.target.value) })} />
-                    </div>
+                        <div className="admin-menu-group">
+                          <label className="admin-icon-btn menu"> 📑 {res.menuUrl ? "Cambiar Menú" : "Subir Menú"}
+                            <input 
+                              type="file" 
+                              accept="image/*,application/pdf" 
+                              onChange={(e) => subirImagenCloudinary(e, res.id, "menuUrl")} 
+                              style={{ display: 'none' }} 
+                            />
+                          </label>
+                          
+                          {res.menuUrl && (
+                            <button 
+                              className="admin-icon-btn del-menu" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if(window.confirm("¿Eliminar el archivo del menú?")) {
+                                  actualizarDato(res.id, "menuUrl", ""); 
+                                  alert("Menú eliminado 🗑️");
+                                }
+                              }}
+                              title="Eliminar Menú"
+                            >
+                              ❌
+                            </button>
+                          )}
+                        </div>
+
+                        <button className="admin-icon-btn del" onClick={(e) => eliminarRestaurante(e, res.id, res.nombre)}>🗑️ Restaurante</button>
+                      </div>
+                    ) : (
+                      <>
+                        <button className={`fav-btn ${favoritos.includes(res.id) ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); favoritos.includes(res.id) ? setFavoritos(favoritos.filter(f => f !== res.id)) : setFavoritos([...favoritos, res.id]); }}>
+                          {favoritos.includes(res.id) ? '❤️' : '🤍'}
+                        </button>
+                        <button className="share-btn" onClick={(e) => { 
+                          e.stopPropagation(); 
+                          const textoACompartir = `¡Mira este restaurante en Turbo! 🌴\n\n*${res.nombre}*\n📍 Ubicación: ${res.zona || 'Turbo'}\n🍴 Categoría: ${res.categoria}`;
+                          const urlApp = window.location.href;
+                          if (navigator.share) {
+                            navigator.share({ title: res.nombre, text: textoACompartir, url: urlApp }).catch(() => console.log("Error")); 
+                          } else {
+                            window.open(`https://wa.me/?text=${encodeURIComponent(textoACompartir + "\n" + urlApp)}`, '_blank');
+                          }
+                        }}>🔗</button>
+                      </>
+                    )}
                   </div>
-                ) : (
-                  <>
-                    <div className="status-badge"><span className={`dot ${estado.clase}`}></span> {estado.texto}</div>
-                    <h3>{res.nombre}</h3>
-                    <p onClick={(e) => { e.stopPropagation(); window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(res.nombre + " " + (res.zona || 'Turbo, Antioquia'))}`, '_blank'); }} style={{cursor: 'pointer'}}>
-                      📍 {res.zona || 'Turbo, Antioquia'}
-                    </p>
-                    <small>🕒 {res.aperturaTexto} - {res.cierreTexto}</small>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
-      {esAdmin && <button className="fab-button" onClick={agregarRestaurante}>+</button>}
+                  <div className="card-info">
+                    {esAdmin ? (
+                      <div className="admin-editor-grid" onClick={e => e.stopPropagation()}>
+                        <input type="text" defaultValue={res.nombre} onBlur={e => actualizarDato(res.id, "nombre", e.target.value)} placeholder="Nombre" />
+                        
+                        <select 
+                          value={res.categoria} 
+                          onChange={e => actualizarDato(res.id, "categoria", e.target.value)}
+                          style={{background: '#1a1b22', color: 'white', border: '1px solid #00f2ff', borderRadius: '5px', padding: '5px'}}
+                        >
+                          {categorias.filter(c => c !== "Todos" && c !== "Favoritos").map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+
+                        <input type="text" defaultValue={res.zona} onBlur={e => actualizarDato(res.id, "zona", e.target.value)} placeholder="Texto Ubicación (Turbo, Antioquia)" />
+                        <input type="text" defaultValue={res.mapsUrl} onBlur={e => actualizarDato(res.id, "mapsUrl", e.target.value)} placeholder="Enlace de Google Maps" />
+                        <input type="text" defaultValue={res.facebookUrl} onBlur={e => actualizarDato(res.id, "facebookUrl", e.target.value)} placeholder="Link Facebook" />
+                        <input type="text" defaultValue={res.instagramUrl} onBlur={e => actualizarDato(res.id, "instagramUrl", e.target.value)} placeholder="Link Instagram" />
+                        <input type="text" defaultValue={res.telefono} onBlur={e => actualizarDato(res.id, "telefono", e.target.value)} placeholder="Tel (57...)" />
+                        <div className="admin-hours">
+                          Abre: <input type="number" defaultValue={res.hAperturaRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, apertura: parseInt(e.target.value) })} />
+                          Cierra: <input type="number" defaultValue={res.hCierreRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, cierre: parseInt(e.target.value) })} />
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="status-badge"><span className={`dot ${estado.clase}`}></span> {estado.texto}</div>
+                        <h3>{res.nombre}</h3>
+                        <p onClick={(e) => { 
+                          e.stopPropagation(); 
+                          const link = res.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(res.nombre + " " + (res.zona || 'Turbo, Antioquia'))}`;
+                          window.open(link, '_blank'); 
+                        }} style={{cursor: 'pointer'}}>
+                          📍 {res.zona || 'Turbo, Antioquia'}
+                        </p>
+                        <small>🕒 {res.aperturaTexto} - {res.cierreTexto}</small>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {esAdmin && <button className="fab-button" onClick={agregarRestaurante}>+</button>}
+        </>
+      )}
 
       {seleccionado && (
         <div className="modal-overlay" onClick={() => setSeleccionado(null)}>
@@ -335,11 +371,14 @@ function App() {
               <div className="tab-content">
                 {activeTab === 'info' ? (
                   <div className="aparecer">
-                    <p>📍 <strong>Zona:</strong> {seleccionado.zona}</p>
+                    <p>📍 <strong>Ubicación:</strong> {seleccionado.zona}</p>
                     <p>🕒 <strong>Horario:</strong> {seleccionado.aperturaTexto} - {seleccionado.cierreTexto}</p>
                     <p>📞 <strong>Teléfono:</strong> {seleccionado.telefono}</p>
                     <div className="action-buttons-grid">
-                      <button className="maps-btn" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seleccionado.nombre + " " + seleccionado.zona)}`, '_blank')}>🗺️ Maps</button>
+                      <button className="maps-btn" onClick={() => {
+                        const link = seleccionado.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seleccionado.nombre + " " + seleccionado.zona)}`;
+                        window.open(link, '_blank');
+                      }}>🗺️ Maps</button>
                       {seleccionado.instagramUrl && <button className="ig-btn" onClick={() => window.open(seleccionado.instagramUrl, '_blank')}>📸 Instagram</button>}
                       {seleccionado.facebookUrl && <button className="fb-btn" onClick={() => window.open(seleccionado.facebookUrl, '_blank')}>🔵 Facebook</button>}
                     </div>

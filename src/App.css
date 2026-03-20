@@ -1,137 +1,93 @@
-/* --- CONFIGURACIÓN DE COLORES (SE MANTIENEN) --- */
+/* --- CONFIGURACIÓN DE COLORES Y TEMAS --- */
 :root {
+  /* Colores Neón que se mantienen en ambos modos */
   --neon-cyan: #00f3ff;
   --neon-pink: #ff0055;
-  --dark-bg: #0d0d0d;
-  --card-bg: #1a1a1a;
   --neon-green: #25D366;
   --neon-orange: #ff9800; 
   --fb-blue: #1877F2;
+
+  /* Variables dinámicas (Modo Oscuro por defecto) */
+  --dark-bg: #0d0d0d;
+  --card-bg: #1a1a1a;
+  --text-color: #ffffff;
+  --border-color: #333333;
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --modal-bg: #111111;
+}
+
+/* --- VARIABLES PARA MODO CLARO --- */
+[data-theme='light'] {
+  --dark-bg: #f0f2f5;
+  --card-bg: #ffffff;
+  --text-color: #1a1a1a;
+  --border-color: #dddddd;
+  --input-bg: #ffffff;
+  --modal-bg: #ffffff;
 }
 
 body {
   background-color: var(--dark-bg);
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: white;
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* --- MEJORA DEL TÍTULO (NUEVO AJUSTE PARA MÓVIL) --- */
+/* --- BOTÓN DE CAMBIO DE TEMA --- */
+.theme-toggle-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 2px solid var(--neon-cyan);
+  background: var(--card-bg);
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 2100; /* Por encima de casi todo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px var(--neon-cyan);
+}
+
+/* --- MEJORA DEL TÍTULO --- */
 .title {
-  font-size: 2.2rem; /* Tamaño base para móvil */
+  font-size: 2.2rem;
   font-weight: 800;
   text-align: center;
-  color: #fff;
+  color: var(--text-color); /* Adaptable */
   text-transform: uppercase;
   margin: 20px 0 40px 0;
   letter-spacing: 2px;
   line-height: 1.1;
-  /* Efecto Neón Azul de la foto */
-  text-shadow: 
-    0 0 10px rgba(0, 243, 255, 0.8),
-    0 0 20px rgba(0, 243, 255, 0.4),
-    0 0 30px rgba(0, 243, 255, 0.2);
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
   display: flex;
-  flex-direction: column; /* Apila "Restaurantes" y "Turbo" en vertical */
+  flex-direction: column;
   align-items: center;
   gap: 5px;
 }
 
 .title span {
-  font-size: 3.2rem; /* "TURBO" más grande */
+  font-size: 3.2rem;
   background: linear-gradient(to bottom, #fff, var(--neon-cyan));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgb(0, 0, 0));
+  filter: drop-shadow(0 0 15px rgba(0, 0, 0, 0.5));
 }
 
-/* Ajuste para PC */
 @media (min-width: 768px) {
-  .title {
-    flex-direction: row; /* En línea para pantallas grandes */
-    justify-content: center;
-    font-size: 3rem;
-    gap: 15px;
-  }
-  .title span {
-    font-size: 3.5rem;
-  }
-}
-
-/* --- MEJORA DEL FORMULARIO DE EDICIÓN (ADMIN) --- */
-.admin-editor-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 15px;
-  margin-top: 10px;
-}
-
-.admin-input-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-}
-
-.admin-input-group label {
-  font-size: 0.8rem;
-  color: var(--neon-cyan);
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.admin-editor-grid input {
-  width: 100%;
-  padding: 10px;
-  background: #222;
-  border: 1px solid #444;
-  border-radius: 8px;
-  color: white;
-  outline: none;
-  transition: 0.3s;
-}
-
-.admin-editor-grid input:focus {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-}
-
-.admin-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-/* Botones dentro del modo edición */
-.admin-save-btn {
-  background: var(--neon-green);
-  color: black;
-  font-weight: bold;
-  border: none;
-  padding: 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.admin-cancel-btn {
-  background: #444;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-/* --- HEADER Y CONTENEDOR --- */
-.app-container {
-  padding: 40px 20px; 
-  max-width: 1200px;
-  margin: auto;
-  text-align: center;
+  .title { flex-direction: row; justify-content: center; font-size: 3rem; gap: 15px; }
+  .title span { font-size: 3.5rem; }
 }
 
 /* --- BUSCADOR Y CATEGORÍAS --- */
@@ -141,8 +97,8 @@ body {
   padding: 15px 25px;
   border-radius: 50px;
   border: 2px solid var(--neon-cyan);
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: var(--input-bg);
+  color: var(--text-color);
   font-size: 1.1rem;
   outline: none;
   box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
@@ -150,38 +106,21 @@ body {
   transition: 0.3s;
 }
 
-.search-input:focus {
-  box-shadow: 0 0 25px var(--neon-cyan);
-}
-
-.category-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
-}
-
 .category-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid #444;
-  color: white;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
   padding: 8px 20px;
   border-radius: 20px;
   cursor: pointer;
   transition: 0.3s;
 }
 
-.category-btn:hover, .category-btn.active {
-  border-color: var(--neon-cyan);
-  background: rgba(0, 243, 255, 0.1);
-  box-shadow: 0 0 15px var(--neon-cyan);
-}
-
 .category-btn.active {
   background: var(--neon-cyan);
   color: black;
   font-weight: bold;
+  border-color: var(--neon-cyan);
 }
 
 /* --- TARJETAS --- */
@@ -194,10 +133,16 @@ body {
 .restaurant-card {
   background: var(--card-bg);
   border-radius: 25px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   overflow: hidden;
   transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
+  color: var(--text-color);
+}
+
+.restaurant-card h3 {
+  margin: 10px 0;
+  color: var(--text-color);
 }
 
 .restaurant-card:hover {
@@ -206,300 +151,130 @@ body {
   box-shadow: 0 15px 35px rgba(0, 243, 255, 0.2);
 }
 
-.card-media {
-  height: 190px;
-  position: relative;
+.card-media { height: 190px; position: relative; }
+.card-header-img { width: 100%; height: 100%; object-fit: cover; }
+.card-info { padding: 20px; }
+
+/* Estilo específico para el texto de ubicación clickeable */
+.card-info p {
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+  transition: color 0.2s;
+}
+.card-info p:hover {
+  color: var(--neon-cyan);
 }
 
-.card-header-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.card-info {
-  padding: 20px;
-}
-
-/* --- ESTADOS (ABIERTO/CERRADO) --- */
-.status-badge {
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.dot.open { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
-.dot.closed { background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
-
-/* --- MODAL Y TABS --- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(10px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
+/* --- MODAL --- */
 .modal-content {
-  background: #111;
+  background: var(--modal-bg);
+  color: var(--text-color);
   width: 90%;
   max-width: 480px;
   border-radius: 30px;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
   max-height: 85vh;
   overflow-y: auto;
+  position: relative;
 }
 
-/* --- BOTÓN FLOTANTE --- */
-.fab-button {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
-  background: var(--neon-cyan);
-  color: black;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  box-shadow: 0 0 20px var(--neon-cyan);
-  z-index: 1000;
-  transition: 0.3s;
-}
+.modal-body h2 { color: var(--text-color); }
 
-.fab-button:hover {
-  transform: scale(1.1) rotate(90deg);
-}
-
-/* --- ANIMACIÓN --- */
-.aparecer {
-  animation: slideIn 0.4s ease-out forwards;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* --- BOTÓN SALIR ADMIN --- */
-.exit-admin-btn {
-  background: var(--neon-pink);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-bottom: 20px;
-  box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.exit-admin-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px var(--neon-pink);
-  filter: brightness(1.1);
-}
-
-/* Para que "Abre" y "Cierra" no se amontonen */
-.admin-hours {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 0.85rem;
-  color: #bbb;
-  margin-top: 5px;
-}
-
-.admin-hours input {
-  width: 60px; 
-  text-align: center;
-}
-
-/* --- OVERLAY DE ACCIONES --- */
-.admin-actions-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+/* --- ADMIN EDITOR --- */
+.admin-editor-grid {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.restaurant-card:hover .admin-actions-overlay {
-  opacity: 1;
-}
-
-.admin-icon-btn {
-  background: white;
-  color: black;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  cursor: pointer;
-  border: none;
-}
-
-.admin-icon-btn.del {
-  background: var(--neon-pink);
-  color: white;
-}
-
-/* --- BOTONES DE REDES SOCIALES Y MAPA --- */
-.action-buttons-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   gap: 12px;
-  margin-top: 20px;
-  padding: 0 10px;
-}
-
-.maps-btn, .ig-btn, .fb-btn {
-  flex: 1 1 120px;
-  min-width: 100px;
-  max-width: 160px;
-  padding: 12px 8px;
-  border-radius: 12px;
-  font-weight: bold;
-  font-size: 0.9rem;
-  cursor: pointer;
-  border: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.fb-btn { 
-  background: #1877F2; 
-  box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
-}
-
-.ig-btn { 
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
-  box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);
-}
-
-.maps-btn { 
-  background: #4285F4; 
-  box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
-}
-
-.maps-btn:hover, .ig-btn:hover, .fb-btn:hover {
-  transform: translateY(-4px);
-  filter: brightness(1.15);
-}
-
-/* --- BOTÓN DE PEDIR WHATSAPP --- */
-.order-btn {
-  width: calc(100% - 20px);
-  margin: 20px 10px;
-  padding: 16px;
-  background: var(--neon-green);
-  color: white;
-  border: none;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 15px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
-  transition: 0.3s;
+  margin-top: 10px;
 }
 
-.order-btn:hover {
-  transform: scale(1.02);
-  box-shadow: 0 0 30px var(--neon-green);
+.admin-editor-grid input, .admin-editor-grid select {
+  width: 100%;
+  padding: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  outline: none;
 }
 
-/* --- BOTÓN DE CERRAR MODAL (X) --- */
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 38px;
-  height: 38px;
-  background-color: var(--neon-pink);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  font-size: 1.2rem;
+/* --- SE MANTIENEN IGUAL (BOTONES Y ANIMACIONES) --- */
+.status-badge { font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.open { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+.dot.closed { background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex; justify-content: center; align-items: center; z-index: 2000;
+}
+
+.fab-button {
+  position: fixed; bottom: 30px; right: 30px;
+  width: 65px; height: 65px; border-radius: 50%;
+  background: var(--neon-cyan); color: black;
+  border: none; font-size: 2rem; cursor: pointer;
+  box-shadow: 0 0 20px var(--neon-cyan); z-index: 1000; transition: 0.3s;
+}
+
+.aparecer { animation: slideIn 0.4s ease-out forwards; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.exit-admin-btn { background: var(--neon-pink); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+.order-btn { width: calc(100% - 20px); margin: 20px 10px; padding: 16px; background: var(--neon-green); color: white; border: none; border-radius: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px var(--neon-green); }
+.close-btn { position: absolute; top: 15px; right: 15px; width: 38px; height: 38px; background-color: var(--neon-pink); color: white; border: none; border-radius: 50%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2100; }
+
+.action-buttons-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; padding: 0 10px; }
+.fb-btn { background: #1877F2; }
+.ig-btn { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+.maps-btn { background: #4285F4; }
+.maps-btn, .ig-btn, .fb-btn { flex: 1 1 120px; padding: 12px 8px; border-radius: 12px; font-weight: bold; color: white; border: none; cursor: pointer; }
+
+/* --- INDICADOR DE CARGA CON EFECTO BLUR (MODERNO Y ADAPTABLE) --- */
+.loader-container {
+  position: fixed;
+  inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 0 15px var(--neon-pink);
-  z-index: 2100;
-  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-  animation-delay: 0.2s; 
+  gap: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 3000;
 }
 
-@keyframes popIn {
-  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-.pdf-download-btn {
-  display: inline-block;
-  margin-top: 15px;
-  padding: 10px 20px;
-  background: linear-gradient(45deg, #00f2ff, #0072ff);
-  color: white;
-  text-decoration: none;
-  border-radius: 50px;
+.loader-container p {
+  color: var(--neon-cyan);
   font-weight: bold;
-  font-size: 0.8rem;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  box-shadow: 0 0 10px var(--neon-cyan);
-  transition: 0.3s;
+  animation: pulse 1.5s infinite;
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
 }
 
-/* Botón para eliminar categoría */
-.del-cat-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #ff4d4d;
-  color: white;
+.spinner {
+  width: 55px;
+  height: 55px;
+  border: 5px solid var(--border-color);
+  border-top: 5px solid var(--neon-cyan);
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  cursor: pointer;
-  border: 1px solid white;
-  z-index: 5;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
 }
 
-/* Botón especial para añadir categorías */
-.add-cat-btn {
-  border: 1px dashed #00f2ff !important;
-  background: rgba(0, 242, 255, 0.1) !important;
-  color: #00f2ff !important;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1); }
 }
