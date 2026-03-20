@@ -28,10 +28,10 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-// Forzado de Java 17 para todos los subproyectos (Solución para Appflow)
+// Forzado de Java 21 para que coincida con lo que pide la librería
 subprojects {
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
