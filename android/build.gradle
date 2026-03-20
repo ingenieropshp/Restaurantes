@@ -28,10 +28,9 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-// Forzado de Java 21 para que coincida con lo que pide la librería
 subprojects {
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        // Esto es más potente que sourceCompatibility y suele forzar al servidor a usar el JDK 21
+        options.release.set(21)
     }
 }
