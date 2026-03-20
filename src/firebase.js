@@ -1,6 +1,6 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,5 +12,21 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+
+// Inicializar Firestore
+const db = getFirestore(app);
+
+// Activar el modo offline (Persistencia en caché)
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+        // Probablemente hay múltiples pestañas abiertas al mismo tiempo
+        console.warn("Persistencia falló: Múltiples pestañas activas.");
+    } else if (err.code === 'unimplemented') {
+        // El navegador (muy antiguo o modo incógnito extremo) no lo soporta
+        console.warn("El navegador no soporta persistencia de datos.");
+    }
+});
+
+export { db };
