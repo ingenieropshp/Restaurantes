@@ -1,7 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
     repositories {
         google()
         mavenCentral()
@@ -24,17 +23,12 @@ allprojects {
     }
 }
 
+// Solo una vez el task clean
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
-
-
+// Forzado de Java 17 para todos los subproyectos (Solución para Appflow)
 subprojects {
     tasks.withType(JavaCompile) {
         sourceCompatibility = JavaVersion.VERSION_17
