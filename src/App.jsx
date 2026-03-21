@@ -165,26 +165,38 @@ function App() {
     } catch (error) { console.error("Error al actualizar:", error); }
   };
 
+  // --- NUEVA FUNCIÓN CON LÓGICA DE ARRAY PARA MENÚ ---
   const subirImagenCloudinary = async (e, idRestaurante, campo) => {
     e.stopPropagation();
     const file = e.target.files[0];
     if (!file) return;
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'Restaurante_fotos'); 
-    formData.append('cloud_name', 'dq5vhizl1'); 
+    formData.append('upload_preset', 'Restaurante_fotos');
+    formData.append('cloud_name', 'dq5vhizl1');
 
     try {
-      const response = await fetch(`https://api.cloudinary.com/v1_1/dq5vhizl1/auto/upload`, { 
+      const response = await fetch(`https://api.cloudinary.com/v1_1/dq5vhizl1/auto/upload`, {
         method: 'POST',
         body: formData
       });
       const data = await response.json();
+
       if (data.secure_url) {
-        await actualizarDato(idRestaurante, campo, data.secure_url);
-        alert("¡Archivo cargado correctamente! ✅");
+        if (campo === "menuUrl") {
+          const resActual = restaurantesFB.find(r => r.id === idRestaurante);
+          const menuActual = Array.isArray(resActual.menuUrl) ? resActual.menuUrl : (resActual.menuUrl ? [resActual.menuUrl] : []);
+          const nuevoMenu = [...menuActual, data.secure_url];
+          await actualizarDato(idRestaurante, "menuUrl", nuevoMenu);
+        } else {
+          await actualizarDato(idRestaurante, campo, data.secure_url);
+        }
+        alert("¡Archivo cargado y añadido al menú! ✅");
       }
-    } catch (error) { alert("Error al subir archivo."); }
+    } catch (error) {
+      alert("Error al subir archivo.");
+    }
   };
 
   useEffect(() => { 
@@ -211,13 +223,27 @@ function App() {
     return coincideNombre && coincideCategoria;
   });
 
+  // --- CAMBIO: RENDER CONDICIONAL PARA CARGA ---
+  if (cargando) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-content">
+          <h1 className="title">
+            PIZINGO<span><span className="neon-duck">🦆</span></span>
+          </h1>
+          <div className="spinner"></div>
+          <p className="loading-text">Cocinando la experiencia...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       <button className="theme-toggle-btn" onClick={toggleTema} title="Cambiar modo">
         {tema === "dark" ? "🌙" : "☀️"}
       </button>
 
-      {/* --- HEADER AGREGADO AQUÍ --- */}
       <header className="app-header" style={{ paddingTop: '40px', paddingBottom: '20px' }}>
         <h1 className="title">
           PIZINGO<span><span className="neon-duck">🦆</span></span>
@@ -293,7 +319,7 @@ function App() {
                     </label>
 
                     <div className="admin-menu-group">
-                      <label className="admin-icon-btn menu"> 📑 {res.menuUrl ? "Cambiar Menú" : "Subir Menú"}
+                      <label className="admin-icon-btn menu"> 📑 {res.menuUrl ? "Añadir al Menú" : "Subir Menú"}
                         <input 
                           type="file" 
                           accept="image/*,application/pdf" 
@@ -307,7 +333,7 @@ function App() {
                           className="admin-icon-btn del-menu" 
                           onClick={(e) => {
                             e.stopPropagation();
-                            if(window.confirm("¿Eliminar el archivo del menú?")) {
+                            if(window.confirm("¿Eliminar todos los archivos del menú?")) {
                               actualizarDato(res.id, "menuUrl", ""); 
                               alert("Menú eliminado 🗑️");
                             }
@@ -429,29 +455,26 @@ function App() {
                   </div>
                 ) : (
                   activeTab === 'menu' && seleccionado.menuUrl && (
-                    <div className="aparecer" style={{ textAlign: 'center' }}>
-                      {seleccionado.menuUrl.toLowerCase().includes('.pdf') ? (
-                        <div className="pdf-viewer-container">
-                          <iframe src={`${seleccionado.menuUrl}#toolbar=0`} width="100%" height="500px" title="Visor PDF"></iframe>
-                          <a href={seleccionado.menuUrl} target="_blank" rel="noreferrer" className="pdf-download-btn">Abrir completo ↗️</a>
+                    <div className="aparecer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {(Array.isArray(seleccionado.menuUrl) ? seleccionado.menuUrl : [seleccionado.menuUrl]).map((url, index) => (
+                        <div key={index}>
+                          {url.toLowerCase().includes('.pdf') ? (
+                             <div className="pdf-viewer-container" style={{ padding: '20px', background: 'rgba(0,242,255,0.05)', borderRadius: '15px', border: '1px dashed var(--accent)' }}>
+                               <a href={url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 'bold' }}>
+                                 📄 ABRIR PDF PARTE {index + 1} ↗️
+                               </a>
+                             </div>
+                          ) : (
+                            <img 
+                              src={url} 
+                              className="menu-preview-img" 
+                              alt={`Menú ${index + 1}`} 
+                              onClick={() => setImagenAmpliada(url)} 
+                              style={{ width: '100%', borderRadius: '10px', cursor: 'zoom-in' }} 
+                            />
+                          )}
                         </div>
-                      ) : (
-                        <img 
-                          src={seleccionado.menuUrl} 
-                          className="menu-preview-img" 
-                          alt="Menú" 
-                          onClick={() => setImagenAmpliada(seleccionado.menuUrl)} 
-                          style={{ 
-                            width: '100%', 
-                            height: 'auto', 
-                            maxHeight: '70vh', 
-                            objectFit: 'contain', 
-                            display: 'block',
-                            margin: '0 auto',
-                            cursor: 'zoom-in'
-                          }} 
-                        />
-                      )}
+                      ))}
                     </div>
                   )
                 )}
