@@ -111,7 +111,7 @@ function App() {
       : `¡Hola! Quiero hacer un pedido en ${nombreRestaurante}.`;
 
     const texto = `PIZINGO PEDIDOS \n` +
-                  `--------------------------\n` +
+                 
                   `${saludoCustom}\n\n` +
                   `--------------------------\n` +
                   `¿Me confirman disponibilidad? `;
@@ -311,7 +311,7 @@ function App() {
     return (
       <div className="loading-screen">
         <div className="loading-content">
-          <h1 className="title">PIZINGO<span><span className="neon-duck">🦆</span></span></h1>
+          <h1 className="title">PISINGO<span><span className="neon-duck">🦆</span></span></h1>
           <div className="spinner"></div>
           <p className="loading-text">Cocinando la experiencia...</p>
         </div>
@@ -325,8 +325,9 @@ function App() {
         {tema === "dark" ? "🌙" : "☀️"}
       </button>
 
+       {/* --- ENCABEZADO - TITULO --- */}
       <header className="app-header" style={{ paddingTop: '40px', paddingBottom: '20px' }}>
-        <h1 className="title">PIZINGO<span><span className="neon-duck">🦆</span></span></h1>
+        <h1 className="title">PISINGO<span><span className="neon-duck">🦆</span></span></h1>
         <p className="slogan" style={{ letterSpacing: '5px', fontWeight: '700', color: 'var(--accent)', fontSize: '0.8rem', textAlign: 'center' }}>
           FOOD & DELIVERY
         </p>
