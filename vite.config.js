@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Restaurantes Turbo',
-        short_name: 'TurboFood',
+        name: 'PISINGO',
+        short_name: 'PISINGO',
         description: 'Guía de restaurantes de Turbo, Antioquia',
         theme_color: '#0d0d0d',
         background_color: '#0d0d0d',
