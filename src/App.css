@@ -69,11 +69,15 @@ body {
   margin: 20px 0 40px 0;
   letter-spacing: 2px;
   line-height: 1.1;
-  text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+  text-shadow: 0 0 10px rgb(251, 253, 255);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 5px;
+}
+
+.neon-duck {
+  filter: drop-shadow(0 0 8px #ff00ff); /* Brillo rosa para el patico */
 }
 
 .title span {
@@ -83,6 +87,8 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 15px rgba(0, 0, 0, 0.5));
+  color: var(--accent); /* El Cyan neón */
+  -webkit-text-fill-color: var(--accent);
 }
 
 @media (min-width: 768px) {
@@ -123,7 +129,7 @@ body {
   border-color: var(--neon-cyan);
 }
 
-/* --- TARJETAS --- */
+/* --- TARJETAS Y EFECTO SHEEN --- */
 .restaurant-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -140,6 +146,33 @@ body {
   color: var(--text-color);
 }
 
+/* El efecto de brillo (Sheen) */
+.restaurant-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent
+  );
+  transform: skewX(-25deg);
+  animation: brilloPremium 5s infinite; /* Pasa cada 5 segundos */
+  pointer-events: none; /* No interfiere con los clics */
+}
+
+@keyframes brilloPremium {
+  0% { left: -150%; }
+  20% { left: 150%; } /* Cruce rápido */
+  100% { left: 150%; } /* Espera larga antes de repetir */
+}
+
 .restaurant-card h3 {
   margin: 10px 0;
   color: var(--text-color);
@@ -151,20 +184,20 @@ body {
   box-shadow: 0 15px 35px rgba(0, 243, 255, 0.2);
 }
 
-/* --- NUEVOS: ACCIONES DE ADMINISTRACIÓN SOBRE LA TARJETA --- */
+.restaurant-card:hover::after {
+    animation-duration: 2s; /* El brillo pasa más seguido al hacer hover */
+}
+
+/* --- ACCIONES DE ADMINISTRACIÓN --- */
 .admin-actions-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  opacity: 1; /* Visibles siempre en modo admin */
   z-index: 10;
 }
 
@@ -180,27 +213,26 @@ body {
   transition: 0.2s;
 }
 
-.admin-icon-btn:hover {
-  transform: scale(1.05);
-}
-
-.admin-icon-btn.del {
-  background: #ff4444;
-  color: white;
-}
+.admin-icon-btn.del { background: #ff4444; color: white; }
 
 .card-media { height: 190px; position: relative; }
-.card-header-img { width: 100%; height: 100%; object-fit: cover; }
-.card-info { padding: 20px; }
 
-.card-info p {
-  font-size: 0.95rem;
-  margin-bottom: 5px;
-  transition: color 0.2s;
+.card-header-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; 
+  background-color: #ffffff; 
 }
-.card-info p:hover {
-  color: var(--neon-cyan);
+
+.modal-img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  background-color: #ffffff;
 }
+
+.card-info { padding: 20px; }
+.card-info p:hover { color: var(--neon-cyan); }
 
 /* --- MODAL --- */
 .modal-content {
@@ -215,9 +247,7 @@ body {
   position: relative;
 }
 
-.modal-body h2 { color: var(--text-color); }
-
-/* --- ADMIN EDITOR (FORMULARIO) --- */
+/* --- EDITOR ADMIN --- */
 .admin-editor-grid {
   display: flex;
   flex-direction: column;
@@ -238,7 +268,7 @@ body {
   outline: none;
 }
 
-/* --- ESTADOS Y COMPONENTES --- */
+/* --- ESTADOS Y ANIMACIONES --- */
 .status-badge { font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; }
 .dot.open { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
@@ -262,6 +292,7 @@ body {
 .aparecer { animation: slideIn 0.4s ease-out forwards; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+/* --- BOTONES DE ACCIÓN --- */
 .exit-admin-btn { background: var(--neon-pink); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
 .order-btn { width: calc(100% - 20px); margin: 20px 10px; padding: 16px; background: var(--neon-green); color: white; border: none; border-radius: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px var(--neon-green); }
 .close-btn { position: absolute; top: 15px; right: 15px; width: 38px; height: 38px; background-color: var(--neon-pink); color: white; border: none; border-radius: 50%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2100; }
@@ -272,46 +303,49 @@ body {
 .maps-btn { background: #4285F4; }
 .maps-btn, .ig-btn, .fb-btn { flex: 1 1 120px; padding: 12px 8px; border-radius: 12px; font-weight: bold; color: white; border: none; cursor: pointer; }
 
-/* --- INDICADOR DE CARGA --- */
+/* --- LOADER --- */
 .loader-container {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); z-index: 3000;
+}
+.spinner {
+  width: 55px; height: 55px; border: 5px solid var(--border-color);
+  border-top: 5px solid var(--neon-cyan); border-radius: 50%;
+  animation: spin 1s linear infinite; box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* --- CANGREJO ANIMADO --- */
+.neon-crab {
+  display: inline-block;
+  font-size: 1.5rem;
+  filter: brightness(1.2) drop-shadow(0 0 10px #000000);
+  animation: caminadito 2s ease-in-out infinite;
+}
+
+@keyframes caminadito {
+  0%, 50%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(5px) rotate(10deg); }
+  75% { transform: translateX(-5px) rotate(-10deg); }
+}
+
+/* --- MENÚ Y TABS --- */
+.menu-preview-img {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain; /* Muestra el menú completo sin cortes */
+  cursor: zoom-in;
+  border-radius: 12px;
+  background-color: #f5f5f5; /* Fondo claro para que el menú de papel luzca mejor */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.tab-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
-  background: rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 3000;
-}
-
-.loader-container p {
-  color: var(--neon-cyan);
-  font-weight: bold;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  animation: pulse 1.5s infinite;
-  text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
-}
-
-.spinner {
-  width: 55px;
-  height: 55px;
-  border: 5px solid var(--border-color);
-  border-top: 5px solid var(--neon-cyan);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.5; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1); }
-}
+  padding: 15px;
+  gap: 15px;
+} 

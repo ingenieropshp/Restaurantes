@@ -16,7 +16,26 @@ function App() {
   const [esAdmin, setEsAdmin] = useState(false);
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
 
-  // --- LÓGICA DE TEMA (MODO CLARO/OSCURO) ---
+  // --- LÓGICA DE WHATSAPP ---
+  const enviarPedidoWhatsApp = (e, restaurante) => {
+    e.stopPropagation(); 
+    const telefonoLimpio = restaurante.telefono.toString().replace(/\D/g, '');
+    const nombreRestaurante = restaurante.nombre;
+    const saludoCustom = restaurante.mensajePersonalizado && restaurante.mensajePersonalizado.trim() !== "" 
+      ? restaurante.mensajePersonalizado 
+      : `¡Hola! Quiero hacer un pedido en ${nombreRestaurante}.`;
+
+    const texto = `PIZINGO PEDIDOS \n` +
+                  `--------------------------\n` +
+                  `${saludoCustom}\n\n` +
+                  `--------------------------\n` +
+                  `¿Me confirman disponibilidad? `;
+
+    const enlace = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(texto)}`;
+    window.open(enlace, '_blank');
+  };
+
+  // --- LÓGICA DE TEMA ---
   const [tema, setTema] = useState(localStorage.getItem("tema_turbo") || "dark");
 
   useEffect(() => {
@@ -29,15 +48,13 @@ function App() {
     sonidoPop.play().catch(() => {}); 
   };
 
-  // --- Categorías dinámicas ---
+  // --- CATEGORÍAS ---
   const [categorias, setCategorias] = useState(["Todos", "Favoritos"]);
-
   const [favoritos, setFavoritos] = useState(() => {
     const guardados = localStorage.getItem("favoritos_turbo");
     return guardados ? JSON.parse(guardados) : [];
   });
 
-  // --- Funciones de Categorías ---
   const obtenerCategorias = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "configuracion"));
@@ -78,6 +95,7 @@ function App() {
     }
   };
 
+  // --- DATOS FIREBASE ---
   const obtenerDatos = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "restaurante")); 
@@ -112,6 +130,9 @@ function App() {
       const nuevoRestaurante = {
         nombre: nombre,
         categoria: categorias[1] || "General", 
+        barrio: "", 
+        linkUbicacion: "", 
+        mensajePersonalizado: "", 
         zona: "Turbo, Antioquia",
         telefono: "57",
         imagenUrl: "",
@@ -196,9 +217,23 @@ function App() {
         {tema === "dark" ? "🌙" : "☀️"}
       </button>
 
-      <h1 className="title">
-        RESTAURANTES <span>TURBO 🌴</span>
-      </h1>
+      {/* --- HEADER AGREGADO AQUÍ --- */}
+      <header className="app-header" style={{ paddingTop: '40px', paddingBottom: '20px' }}>
+        <h1 className="title">
+          PIZINGO<span><span className="neon-duck">🦆</span></span>
+        </h1>
+        
+        <p className="slogan" style={{ 
+          fontFamily: 'var(--font-principal)',
+          letterSpacing: '5px',
+          fontWeight: '700',
+          color: 'var(--accent)',
+          fontSize: '0.8rem',
+          textAlign: 'center'
+        }}>
+          FOOD & DELIVERY
+        </p>
+      </header>
       
       {esAdmin && (
         <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px'}}>
@@ -238,9 +273,18 @@ function App() {
         {listaFiltrada.map((res) => {
           const estado = obtenerEstadoEnVivo(res.hAperturaRaw, res.hCierreRaw);
           return (
-            <div key={res.id} className="restaurant-card aparecer" onClick={() => { if(!esAdmin) { setSeleccionado(res); setActiveTab('info'); } }}>
+            <div 
+              key={res.id} 
+              className="restaurant-card aparecer" 
+              onClick={() => { if(!esAdmin) { setSeleccionado(res); setActiveTab('info'); } }}
+            >
               <div className="card-media">
-                <img src={res.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="card-header-img" alt={res.nombre} />
+                <img 
+                  src={res.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} 
+                  className="card-header-img" 
+                  alt={res.nombre} 
+                  style={{ objectFit: 'contain', backgroundColor: '#fff' }}
+                />
                 
                 {esAdmin ? (
                   <div className="admin-actions-overlay">
@@ -281,7 +325,7 @@ function App() {
                     </button>
                     <button className="share-btn" onClick={(e) => { 
                       e.stopPropagation(); 
-                      const textoACompartir = `¡Mira este restaurante en Turbo! 🌴\n\n*${res.nombre}*\n📍 Zona: ${res.zona || 'Turbo'}\n🍴 Categoría: ${res.categoria}`;
+                      const textoACompartir = `¡Mira este restaurante en Turbo! 🌴\n\n*${res.nombre}*\n📍 Barrio: ${res.barrio || 'Turbo'}\n🍴 Categoría: ${res.categoria}`;
                       const urlApp = window.location.href;
                       if (navigator.share) {
                         navigator.share({ title: res.nombre, text: textoACompartir, url: urlApp }).catch(() => console.log("Error")); 
@@ -308,9 +352,20 @@ function App() {
                       ))}
                     </select>
 
+                    <input type="text" defaultValue={res.barrio} onBlur={e => actualizarDato(res.id, "barrio", e.target.value)} placeholder="Barrio" />
+                    <input type="text" defaultValue={res.linkUbicacion} onBlur={e => actualizarDato(res.id, "linkUbicacion", e.target.value)} placeholder="Link Google Maps" />
+                    
                     <input type="text" defaultValue={res.facebookUrl} onBlur={e => actualizarDato(res.id, "facebookUrl", e.target.value)} placeholder="Link Facebook" />
                     <input type="text" defaultValue={res.instagramUrl} onBlur={e => actualizarDato(res.id, "instagramUrl", e.target.value)} placeholder="Link Instagram" />
                     <input type="text" defaultValue={res.telefono} onBlur={e => actualizarDato(res.id, "telefono", e.target.value)} placeholder="Tel (57...)" />
+                    
+                    <textarea 
+                      placeholder="Mensaje personalizado de WhatsApp..."
+                      defaultValue={res.mensajePersonalizado} 
+                      onBlur={e => actualizarDato(res.id, "mensajePersonalizado", e.target.value)}
+                      style={{gridColumn: '1 / -1', background: '#1a1b22', color: 'white', border: '1px solid #00f2ff', borderRadius: '5px', padding: '5px', minHeight: '50px'}}
+                    />
+
                     <div className="admin-hours">
                       Abre: <input type="number" defaultValue={res.hAperturaRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, apertura: parseInt(e.target.value) })} />
                       Cierra: <input type="number" defaultValue={res.hCierreRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, cierre: parseInt(e.target.value) })} />
@@ -320,8 +375,13 @@ function App() {
                   <>
                     <div className="status-badge"><span className={`dot ${estado.clase}`}></span> {estado.texto}</div>
                     <h3>{res.nombre}</h3>
-                    <p onClick={(e) => { e.stopPropagation(); window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(res.nombre + " " + (res.zona || 'Turbo, Antioquia'))}`, '_blank'); }} style={{cursor: 'pointer'}}>
-                      📍 {res.zona || 'Turbo, Antioquia'}
+                    <p style={{color: 'var(--accent)', fontWeight: 'bold', marginBottom: '4px'}}>🏠 Barrio: {res.barrio || 'Turbo'}</p>
+                    <p onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if(res.linkUbicacion) window.open(res.linkUbicacion, '_blank');
+                        else window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(res.nombre + " Turbo")}`, '_blank');
+                    }} style={{cursor: 'pointer'}}>
+                      📍 Ver Ubicación
                     </p>
                     <small>🕒 {res.aperturaTexto} - {res.cierreTexto}</small>
                   </>
@@ -338,7 +398,12 @@ function App() {
         <div className="modal-overlay" onClick={() => setSeleccionado(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setSeleccionado(null)}>×</button>
-            <img src={seleccionado.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="modal-img" alt={seleccionado.nombre} />
+            <img 
+              src={seleccionado.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} 
+              className="modal-img" 
+              alt={seleccionado.nombre} 
+              style={{ objectFit: 'contain', backgroundColor: '#fff' }}
+            />
             <div className="modal-body">
               <h2>{seleccionado.nombre}</h2>
               <div className="tabs-header">
@@ -350,11 +415,14 @@ function App() {
               <div className="tab-content">
                 {activeTab === 'info' ? (
                   <div className="aparecer">
-                    <p>📍 <strong>Zona:</strong> {seleccionado.zona}</p>
+                    <p>🏠 <strong>Barrio:</strong> {seleccionado.barrio || 'Turbo'}</p>
                     <p>🕒 <strong>Horario:</strong> {seleccionado.aperturaTexto} - {seleccionado.cierreTexto}</p>
                     <p>📞 <strong>Teléfono:</strong> {seleccionado.telefono}</p>
                     <div className="action-buttons-grid">
-                      <button className="maps-btn" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seleccionado.nombre + " " + seleccionado.zona)}`, '_blank')}>🗺️ Maps</button>
+                      <button className="maps-btn" onClick={() => {
+                        if(seleccionado.linkUbicacion) window.open(seleccionado.linkUbicacion, '_blank');
+                        else window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seleccionado.nombre + " Turbo")}`, '_blank');
+                      }}>🗺️ Maps</button>
                       {seleccionado.instagramUrl && <button className="ig-btn" onClick={() => window.open(seleccionado.instagramUrl, '_blank')}>📸 Instagram</button>}
                       {seleccionado.facebookUrl && <button className="fb-btn" onClick={() => window.open(seleccionado.facebookUrl, '_blank')}>🔵 Facebook</button>}
                     </div>
@@ -368,13 +436,32 @@ function App() {
                           <a href={seleccionado.menuUrl} target="_blank" rel="noreferrer" className="pdf-download-btn">Abrir completo ↗️</a>
                         </div>
                       ) : (
-                        <img src={seleccionado.menuUrl} className="menu-preview-img" alt="Menú" onClick={() => setImagenAmpliada(seleccionado.menuUrl)} />
+                        <img 
+                          src={seleccionado.menuUrl} 
+                          className="menu-preview-img" 
+                          alt="Menú" 
+                          onClick={() => setImagenAmpliada(seleccionado.menuUrl)} 
+                          style={{ 
+                            width: '100%', 
+                            height: 'auto', 
+                            maxHeight: '70vh', 
+                            objectFit: 'contain', 
+                            display: 'block',
+                            margin: '0 auto',
+                            cursor: 'zoom-in'
+                          }} 
+                        />
                       )}
                     </div>
                   )
                 )}
               </div>
-              <button className="order-btn" onClick={() => window.open(`https://wa.me/${seleccionado.telefono.toString().replace(/\D/g, '')}`, '_blank')}>Pedir WhatsApp 📱</button>
+              <button 
+                className="order-btn" 
+                onClick={(e) => enviarPedidoWhatsApp(e, seleccionado)}
+              >
+                Pedir Por WhatsApp 📱
+              </button>
             </div>
           </div>
         </div>
