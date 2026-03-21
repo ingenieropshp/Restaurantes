@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 import { db } from './firebase'; 
-import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc, setDoc } from 'firebase/firestore'; 
+import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc, setDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore'; 
 
 const sonidoPop = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-pop-up-light-button-2629.mp3");
 
@@ -15,10 +15,95 @@ function App() {
   const [activeTab, setActiveTab] = useState('info');
   const [esAdmin, setEsAdmin] = useState(false);
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
+  const [metricasData, setMetricasData] = useState([]);
+  const [verMetricas, setVerMetricas] = useState(false);
+  
+  // Estado para filtrar métricas por mes
+  const [mesFiltro, setMesFiltro] = useState(new Date().getMonth());
+
+  // --- LÓGICA DE MÉTRICAS ---
+  const registrarClickMetrica = async (restaurante) => {
+    try {
+      await addDoc(collection(db, "metricas"), {
+        restauranteId: restaurante.id,
+        nombreRestaurante: restaurante.nombre,
+        fecha: serverTimestamp(),
+        tipoAccion: "whatsapp_click"
+      });
+    } catch (error) {
+      console.error("Error al registrar métrica:", error);
+    }
+  };
+
+  const obtenerMetricas = async () => {
+    try {
+      const q = query(collection(db, "metricas"), orderBy("fecha", "desc"));
+      const querySnapshot = await getDocs(q);
+      
+      const docs = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+          ...data, 
+          id: doc.id, // Guardamos el ID por si necesitamos borrar individualmente
+          fechaJS: data.fecha?.toDate() 
+        };
+      });
+      
+      const filtradosPorMes = docs.filter(d => 
+        d.fechaJS && d.fechaJS.getMonth() === parseInt(mesFiltro) && 
+        d.fechaJS.getFullYear() === new Date().getFullYear()
+      );
+
+      const conteo = filtradosPorMes.reduce((acc, curr) => {
+        acc[curr.nombreRestaurante] = (acc[curr.nombreRestaurante] || 0) + 1;
+        return acc;
+      }, {});
+
+      const listaOrdenada = Object.entries(conteo)
+        .map(([nombre, clics]) => ({ nombre, clics }))
+        .sort((a, b) => b.clics - a.clics);
+
+      setMetricasData(listaOrdenada);
+    } catch (error) {
+      console.error("Error al obtener métricas:", error);
+    }
+  };
+
+  // --- NUEVA FUNCIÓN: ELIMINAR MÉTRICAS DE UN RESTAURANTE ---
+  const eliminarMetricasRestaurante = async (nombreRestaurante) => {
+    const confirmacion = window.confirm(`¿Seguro que quieres resetear los clics de "${nombreRestaurante}" para este mes?`);
+    if (!confirmacion) return;
+
+    try {
+      const q = query(collection(db, "metricas"), where("nombreRestaurante", "==", nombreRestaurante));
+      const querySnapshot = await getDocs(q);
+      
+      // Filtramos en cliente por mes para ser precisos
+      const promesasBorrado = querySnapshot.docs
+        .filter(doc => {
+          const fecha = doc.data().fecha?.toDate();
+          return fecha && fecha.getMonth() === parseInt(mesFiltro) && fecha.getFullYear() === new Date().getFullYear();
+        })
+        .map(docRef => deleteDoc(doc(db, "metricas", docRef.id)));
+
+      await Promise.all(promesasBorrado);
+      alert("¡Clics reseteados con éxito! 🏆");
+      obtenerMetricas(); // Refrescar tabla
+    } catch (error) {
+      console.error("Error al eliminar métricas:", error);
+      alert("Error al intentar borrar los registros.");
+    }
+  };
+
+  useEffect(() => {
+    if (verMetricas) obtenerMetricas();
+  }, [mesFiltro, verMetricas]);
 
   // --- LÓGICA DE WHATSAPP ---
   const enviarPedidoWhatsApp = (e, restaurante) => {
     e.stopPropagation(); 
+    registrarClickMetrica(restaurante);
+
     const telefonoLimpio = restaurante.telefono.toString().replace(/\D/g, '');
     const nombreRestaurante = restaurante.nombre;
     const saludoCustom = restaurante.mensajePersonalizado && restaurante.mensajePersonalizado.trim() !== "" 
@@ -165,7 +250,6 @@ function App() {
     } catch (error) { console.error("Error al actualizar:", error); }
   };
 
-  // --- NUEVA FUNCIÓN CON LÓGICA DE ARRAY PARA MENÚ ---
   const subirImagenCloudinary = async (e, idRestaurante, campo) => {
     e.stopPropagation();
     const file = e.target.files[0];
@@ -223,14 +307,11 @@ function App() {
     return coincideNombre && coincideCategoria;
   });
 
-  // --- CAMBIO: RENDER CONDICIONAL PARA CARGA ---
   if (cargando) {
     return (
       <div className="loading-screen">
         <div className="loading-content">
-          <h1 className="title">
-            PIZINGO<span><span className="neon-duck">🦆</span></span>
-          </h1>
+          <h1 className="title">PIZINGO<span><span className="neon-duck">🦆</span></span></h1>
           <div className="spinner"></div>
           <p className="loading-text">Cocinando la experiencia...</p>
         </div>
@@ -245,198 +326,201 @@ function App() {
       </button>
 
       <header className="app-header" style={{ paddingTop: '40px', paddingBottom: '20px' }}>
-        <h1 className="title">
-          PIZINGO<span><span className="neon-duck">🦆</span></span>
-        </h1>
-        
-        <p className="slogan" style={{ 
-          fontFamily: 'var(--font-principal)',
-          letterSpacing: '5px',
-          fontWeight: '700',
-          color: 'var(--accent)',
-          fontSize: '0.8rem',
-          textAlign: 'center'
-        }}>
+        <h1 className="title">PIZINGO<span><span className="neon-duck">🦆</span></span></h1>
+        <p className="slogan" style={{ letterSpacing: '5px', fontWeight: '700', color: 'var(--accent)', fontSize: '0.8rem', textAlign: 'center' }}>
           FOOD & DELIVERY
         </p>
       </header>
       
       {esAdmin && (
         <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px'}}>
-           <button className="exit-admin-btn" onClick={() => setEsAdmin(false)}>Salir Admin 🔒</button>
+           <button className="exit-admin-btn" onClick={() => { setEsAdmin(false); setVerMetricas(false); }}>Salir Admin 🔒</button>
+           <button className="exit-admin-btn" onClick={() => { setVerMetricas(!verMetricas); if(!verMetricas) obtenerMetricas(); }} style={{background: 'var(--accent)', color: 'black'}}>
+             {verMetricas ? "Ver Restaurantes ✏️" : "Dashboard de Ventas 📊"}
+           </button>
         </div>
       )}
 
-      <div className="category-container">
-        {categorias.map(cat => (
-          <div key={cat} style={{position: 'relative', display: 'inline-block'}}>
-            <button 
-              className={`category-btn ${filtroCategoria === cat ? 'active' : ''}`} 
-              onClick={() => setFiltroCategoria(cat)}
+      {/* --- DASHBOARD DE MÉTRICAS --- */}
+      {esAdmin && verMetricas ? (
+        <div className="aparecer" style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
+          <div style={{textAlign: 'center', marginBottom: '25px'}}>
+            <h2 style={{color: 'var(--accent)', textShadow: '0 0 10px var(--accent)'}}>REYES DE PIZINGO 👑</h2>
+            <p style={{marginBottom: '10px'}}>Filtrar por mes:</p>
+            <select 
+              value={mesFiltro} 
+              onChange={(e) => setMesFiltro(e.target.value)}
+              className="search-input"
+              style={{
+                width: 'auto', 
+                minWidth: '200px', 
+                marginBottom: '10px',
+                backgroundColor: '#1a1b22', 
+                color: 'white'             
+              }}
             >
-              {cat === "Favoritos" ? `❤️ ${cat}` : cat}
-            </button>
-            {esAdmin && cat !== "Todos" && cat !== "Favoritos" && (
-              <span className="del-cat-badge" onClick={(e) => eliminarCategoria(e, cat)}>×</span>
-            )}
+              {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map((mes, i) => (
+                <option key={i} value={i} style={{backgroundColor: '#1a1b22', color: 'white'}}>
+                  {mes}
+                </option>
+              ))}
+            </select>
           </div>
-        ))}
-        {esAdmin && (
-          <button className="category-btn add-cat-btn" onClick={añadirCategoria}>+ Nueva</button>
-        )}
-      </div>
 
-      <input 
-        type="text" className="search-input" placeholder="¿Qué quieres comer hoy?..." 
-        value={busqueda} 
-        onChange={(e) => {
-          setBusqueda(e.target.value);
-          if (e.target.value === "admin123") { setEsAdmin(true); setBusqueda(""); alert("Modo Admin Activo 🛠️"); }
-        }} 
-      />
-
-      <div className="restaurant-list">
-        {listaFiltrada.map((res) => {
-          const estado = obtenerEstadoEnVivo(res.hAperturaRaw, res.hCierreRaw);
-          return (
-            <div 
-              key={res.id} 
-              className="restaurant-card aparecer" 
-              onClick={() => { if(!esAdmin) { setSeleccionado(res); setActiveTab('info'); } }}
-            >
-              <div className="card-media">
-                <img 
-                  src={res.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} 
-                  className="card-header-img" 
-                  alt={res.nombre} 
-                  style={{ objectFit: 'contain', backgroundColor: '#fff' }}
-                />
-                
-                {esAdmin ? (
-                  <div className="admin-actions-overlay">
-                    <label className="admin-icon-btn"> 📷 Principal
-                      <input type="file" onChange={(e) => subirImagenCloudinary(e, res.id, "imagenUrl")} style={{ display: 'none' }} />
-                    </label>
-
-                    <div className="admin-menu-group">
-                      <label className="admin-icon-btn menu"> 📑 {res.menuUrl ? "Añadir al Menú" : "Subir Menú"}
-                        <input 
-                          type="file" 
-                          accept="image/*,application/pdf" 
-                          onChange={(e) => subirImagenCloudinary(e, res.id, "menuUrl")} 
-                          style={{ display: 'none' }} 
-                        />
-                      </label>
-                      
-                      {res.menuUrl && (
-                        <button 
-                          className="admin-icon-btn del-menu" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if(window.confirm("¿Eliminar todos los archivos del menú?")) {
-                              actualizarDato(res.id, "menuUrl", ""); 
-                              alert("Menú eliminado 🗑️");
-                            }
-                          }}
-                        > ❌ </button>
-                      )}
-                    </div>
-
-                    <button className="admin-icon-btn del" onClick={(e) => eliminarRestaurante(e, res.id, res.nombre)}>🗑️ Restaurante</button>
-                  </div>
-                ) : (
-                  <>
-                    <button className={`fav-btn ${favoritos.includes(res.id) ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); favoritos.includes(res.id) ? setFavoritos(favoritos.filter(f => f !== res.id)) : setFavoritos([...favoritos, res.id]); }}>
-                      {favoritos.includes(res.id) ? '❤️' : '🤍'}
-                    </button>
-                    <button className="share-btn" onClick={(e) => { 
-                      e.stopPropagation(); 
-                      const textoACompartir = `¡Mira este restaurante en Turbo! 🌴\n\n*${res.nombre}*\n📍 Barrio: ${res.barrio || 'Turbo'}\n🍴 Categoría: ${res.categoria}`;
-                      const urlApp = window.location.href;
-                      if (navigator.share) {
-                        navigator.share({ title: res.nombre, text: textoACompartir, url: urlApp }).catch(() => console.log("Error")); 
-                      } else {
-                        window.open(`https://wa.me/?text=${encodeURIComponent(textoACompartir + "\n" + urlApp)}`, '_blank');
-                      }
-                    }}>🔗</button>
-                  </>
+          <div style={{overflowX: 'auto', background: 'rgba(255,255,255,0.05)', borderRadius: '15px', border: '1px solid var(--accent)', padding: '10px'}}>
+            <table style={{width: '100%', borderCollapse: 'collapse', color: 'white'}}>
+              <thead>
+                <tr style={{borderBottom: '2px solid var(--accent)', textAlign: 'left'}}>
+                  <th style={{padding: '15px'}}>Puesto</th>
+                  <th style={{padding: '15px'}}>Restaurante</th>
+                  <th style={{padding: '15px', textAlign: 'center'}}>Clicks WhatsApp</th>
+                  <th style={{padding: '15px', textAlign: 'center'}}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metricasData.length > 0 ? metricasData.map((item, i) => (
+                  <tr key={i} style={{borderBottom: '1px solid rgba(0,242,255,0.1)'}}>
+                    <td style={{padding: '15px', fontWeight: 'bold'}}>
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
+                    </td>
+                    <td style={{padding: '15px'}}>{item.nombre}</td>
+                    <td style={{padding: '15px', textAlign: 'center', color: 'var(--accent)', fontWeight: 'bold'}}>{item.clics}</td>
+                    <td style={{padding: '15px', textAlign: 'center'}}>
+                      <button 
+                        onClick={() => eliminarMetricasRestaurante(item.nombre)}
+                        style={{
+                          background: '#ff4b2b',
+                          color: 'white',
+                          border: 'none',
+                          padding: '5px 10px',
+                          borderRadius: '5px',
+                          cursor: 'pointer',
+                          fontSize: '0.7rem',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        RESETEAR 🗑️
+                      </button>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan="4" style={{padding: '30px', textAlign: 'center', opacity: 0.6}}>No hay datos registrados en este mes.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="category-container">
+            {categorias.map(cat => (
+              <div key={cat} style={{position: 'relative', display: 'inline-block'}}>
+                <button className={`category-btn ${filtroCategoria === cat ? 'active' : ''}`} onClick={() => setFiltroCategoria(cat)}>
+                  {cat === "Favoritos" ? `❤️ ${cat}` : cat}
+                </button>
+                {esAdmin && cat !== "Todos" && cat !== "Favoritos" && (
+                  <span className="del-cat-badge" onClick={(e) => eliminarCategoria(e, cat)}>×</span>
                 )}
               </div>
+            ))}
+            {esAdmin && <button className="category-btn add-cat-btn" onClick={añadirCategoria}>+ Nueva</button>}
+          </div>
 
-              <div className="card-info">
-                {esAdmin ? (
-                  <div className="admin-editor-grid" onClick={e => e.stopPropagation()}>
-                    <input type="text" defaultValue={res.nombre} onBlur={e => actualizarDato(res.id, "nombre", e.target.value)} placeholder="Nombre" />
-                    
-                    <select 
-                      value={res.categoria} 
-                      onChange={e => actualizarDato(res.id, "categoria", e.target.value)}
-                      style={{background: '#1a1b22', color: 'white', border: '1px solid #00f2ff', borderRadius: '5px', padding: '5px'}}
-                    >
-                      {categorias.filter(c => c !== "Todos" && c !== "Favoritos").map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
+          <input 
+            type="text" className="search-input" placeholder="¿Qué quieres comer hoy?..." 
+            value={busqueda} 
+            onChange={(e) => {
+              setBusqueda(e.target.value);
+              if (e.target.value === "admin123") { setEsAdmin(true); setBusqueda(""); alert("Modo Admin Activo 🛠️"); }
+            }} 
+          />
 
-                    <input type="text" defaultValue={res.barrio} onBlur={e => actualizarDato(res.id, "barrio", e.target.value)} placeholder="Barrio" />
-                    <input type="text" defaultValue={res.linkUbicacion} onBlur={e => actualizarDato(res.id, "linkUbicacion", e.target.value)} placeholder="Link Google Maps" />
-                    
-                    <input type="text" defaultValue={res.facebookUrl} onBlur={e => actualizarDato(res.id, "facebookUrl", e.target.value)} placeholder="Link Facebook" />
-                    <input type="text" defaultValue={res.instagramUrl} onBlur={e => actualizarDato(res.id, "instagramUrl", e.target.value)} placeholder="Link Instagram" />
-                    <input type="text" defaultValue={res.telefono} onBlur={e => actualizarDato(res.id, "telefono", e.target.value)} placeholder="Tel (57...)" />
-                    
-                    <textarea 
-                      placeholder="Mensaje personalizado de WhatsApp..."
-                      defaultValue={res.mensajePersonalizado} 
-                      onBlur={e => actualizarDato(res.id, "mensajePersonalizado", e.target.value)}
-                      style={{gridColumn: '1 / -1', background: '#1a1b22', color: 'white', border: '1px solid #00f2ff', borderRadius: '5px', padding: '5px', minHeight: '50px'}}
-                    />
-
-                    <div className="admin-hours">
-                      Abre: <input type="number" defaultValue={res.hAperturaRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, apertura: parseInt(e.target.value) })} />
-                      Cierra: <input type="number" defaultValue={res.hCierreRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, cierre: parseInt(e.target.value) })} />
-                    </div>
+          <div className="restaurant-list">
+            {listaFiltrada.map((res) => {
+              const estado = obtenerEstadoEnVivo(res.hAperturaRaw, res.hCierreRaw);
+              return (
+                <div key={res.id} className="restaurant-card aparecer" onClick={() => { if(!esAdmin) { setSeleccionado(res); setActiveTab('info'); } }}>
+                  <div className="card-media">
+                    <img src={res.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="card-header-img" alt={res.nombre} style={{ objectFit: 'contain', backgroundColor: '#fff' }} />
+                    {esAdmin ? (
+                      <div className="admin-actions-overlay">
+                        <label className="admin-icon-btn"> 📷 Principal
+                          <input type="file" onChange={(e) => subirImagenCloudinary(e, res.id, "imagenUrl")} style={{ display: 'none' }} />
+                        </label>
+                        <div className="admin-menu-group">
+                          <label className="admin-icon-btn menu"> 📑 {res.menuUrl ? "Añadir al Menú" : "Subir Menú"}
+                            <input type="file" accept="image/*,application/pdf" onChange={(e) => subirImagenCloudinary(e, res.id, "menuUrl")} style={{ display: 'none' }} />
+                          </label>
+                          {res.menuUrl && <button className="admin-icon-btn del-menu" onClick={(e) => { e.stopPropagation(); if(window.confirm("¿Eliminar menú?")) actualizarDato(res.id, "menuUrl", ""); }}> ❌ </button>}
+                        </div>
+                        <button className="admin-icon-btn del" onClick={(e) => eliminarRestaurante(e, res.id, res.nombre)}>🗑️ Restaurante</button>
+                      </div>
+                    ) : (
+                      <>
+                        <button className={`fav-btn ${favoritos.includes(res.id) ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); favoritos.includes(res.id) ? setFavoritos(favoritos.filter(f => f !== res.id)) : setFavoritos([...favoritos, res.id]); }}>{favoritos.includes(res.id) ? '❤️' : '🤍'}</button>
+                        <button className="share-btn" onClick={(e) => { 
+                          e.stopPropagation(); 
+                          const texto = `¡Mira este restaurante en Turbo! 🌴\n\n*${res.nombre}*\n📍 Barrio: ${res.barrio || 'Turbo'}\n🍴 Categoría: ${res.categoria}`;
+                          if (navigator.share) navigator.share({ title: res.nombre, text: texto, url: window.location.href });
+                          else window.open(`https://wa.me/?text=${encodeURIComponent(texto + "\n" + window.location.href)}`, '_blank');
+                        }}>🔗</button>
+                      </>
+                    )}
                   </div>
-                ) : (
-                  <>
-                    <div className="status-badge"><span className={`dot ${estado.clase}`}></span> {estado.texto}</div>
-                    <h3>{res.nombre}</h3>
-                    <p style={{color: 'var(--accent)', fontWeight: 'bold', marginBottom: '4px'}}>🏠 Barrio: {res.barrio || 'Turbo'}</p>
-                    <p onClick={(e) => { 
-                        e.stopPropagation(); 
-                        if(res.linkUbicacion) window.open(res.linkUbicacion, '_blank');
-                        else window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(res.nombre + " Turbo")}`, '_blank');
-                    }} style={{cursor: 'pointer'}}>
-                      📍 Ver Ubicación
-                    </p>
-                    <small>🕒 {res.aperturaTexto} - {res.cierreTexto}</small>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
-      {esAdmin && <button className="fab-button" onClick={agregarRestaurante}>+</button>}
+                  <div className="card-info">
+                    {esAdmin ? (
+                      <div className="admin-editor-grid" onClick={e => e.stopPropagation()}>
+                        <input type="text" defaultValue={res.nombre} onBlur={e => actualizarDato(res.id, "nombre", e.target.value)} />
+                        <select 
+                          value={res.categoria} 
+                          onChange={e => actualizarDato(res.id, "categoria", e.target.value)} 
+                          style={{background: '#1a1b22', color: 'white', border: '1px solid #00f2ff', borderRadius: '5px'}}
+                        >
+                          {categorias.filter(c => c !== "Todos" && c !== "Favoritos").map(cat => (
+                            <option key={cat} value={cat} style={{backgroundColor: '#1a1b22', color: 'white'}}>{cat}</option>
+                          ))}
+                        </select>
+                        <input type="text" defaultValue={res.barrio} onBlur={e => actualizarDato(res.id, "barrio", e.target.value)} placeholder="Barrio" />
+                        <input type="text" defaultValue={res.linkUbicacion} onBlur={e => actualizarDato(res.id, "linkUbicacion", e.target.value)} placeholder="Link Maps" />
+                        <input type="text" defaultValue={res.telefono} onBlur={e => actualizarDato(res.id, "telefono", e.target.value)} placeholder="Tel (57...)" />
+                        <textarea defaultValue={res.mensajePersonalizado} onBlur={e => actualizarDato(res.id, "mensajePersonalizado", e.target.value)} style={{gridColumn: '1 / -1', background: '#1a1b22', color: 'white'}} />
+                        <div className="admin-hours">
+                          Abre: <input type="number" defaultValue={res.hAperturaRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, apertura: parseInt(e.target.value) })} />
+                          Cierra: <input type="number" defaultValue={res.hCierreRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, cierre: parseInt(e.target.value) })} />
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="status-badge"><span className={`dot ${estado.clase}`}></span> {estado.texto}</div>
+                        <h3>{res.nombre}</h3>
+                        <p style={{color: 'var(--accent)', fontWeight: 'bold'}}>🏠 Barrio: {res.barrio || 'Turbo'}</p>
+                        <p onClick={(e) => { e.stopPropagation(); window.open(res.linkUbicacion || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(res.nombre + " Turbo")}`, '_blank'); }} style={{cursor: 'pointer'}}>📍 Ver Ubicación</p>
+                        <small>🕒 {res.aperturaTexto} - {res.cierreTexto}</small>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {esAdmin && !verMetricas && <button className="fab-button" onClick={agregarRestaurante}>+</button>}
 
       {seleccionado && (
         <div className="modal-overlay" onClick={() => setSeleccionado(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setSeleccionado(null)}>×</button>
-            <img 
-              src={seleccionado.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} 
-              className="modal-img" 
-              alt={seleccionado.nombre} 
-              style={{ objectFit: 'contain', backgroundColor: '#fff' }}
-            />
+            <img src={seleccionado.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="modal-img" alt={seleccionado.nombre} />
             <div className="modal-body">
               <h2>{seleccionado.nombre}</h2>
               <div className="tabs-header">
                 <button className={`tab-btn ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>Info</button>
-                {seleccionado.menuUrl && (
-                    <button className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>Menú</button>
-                )}
+                {seleccionado.menuUrl && <button className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>Menú</button>}
               </div>
               <div className="tab-content">
                 {activeTab === 'info' ? (
@@ -445,46 +529,22 @@ function App() {
                     <p>🕒 <strong>Horario:</strong> {seleccionado.aperturaTexto} - {seleccionado.cierreTexto}</p>
                     <p>📞 <strong>Teléfono:</strong> {seleccionado.telefono}</p>
                     <div className="action-buttons-grid">
-                      <button className="maps-btn" onClick={() => {
-                        if(seleccionado.linkUbicacion) window.open(seleccionado.linkUbicacion, '_blank');
-                        else window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seleccionado.nombre + " Turbo")}`, '_blank');
-                      }}>🗺️ Maps</button>
+                      <button className="maps-btn" onClick={() => window.open(seleccionado.linkUbicacion || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seleccionado.nombre + " Turbo")}`, '_blank')}>🗺️ Maps</button>
                       {seleccionado.instagramUrl && <button className="ig-btn" onClick={() => window.open(seleccionado.instagramUrl, '_blank')}>📸 Instagram</button>}
                       {seleccionado.facebookUrl && <button className="fb-btn" onClick={() => window.open(seleccionado.facebookUrl, '_blank')}>🔵 Facebook</button>}
                     </div>
                   </div>
                 ) : (
-                  activeTab === 'menu' && seleccionado.menuUrl && (
-                    <div className="aparecer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {(Array.isArray(seleccionado.menuUrl) ? seleccionado.menuUrl : [seleccionado.menuUrl]).map((url, index) => (
-                        <div key={index}>
-                          {url.toLowerCase().includes('.pdf') ? (
-                             <div className="pdf-viewer-container" style={{ padding: '20px', background: 'rgba(0,242,255,0.05)', borderRadius: '15px', border: '1px dashed var(--accent)' }}>
-                               <a href={url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 'bold' }}>
-                                 📄 ABRIR PDF PARTE {index + 1} ↗️
-                               </a>
-                             </div>
-                          ) : (
-                            <img 
-                              src={url} 
-                              className="menu-preview-img" 
-                              alt={`Menú ${index + 1}`} 
-                              onClick={() => setImagenAmpliada(url)} 
-                              style={{ width: '100%', borderRadius: '10px', cursor: 'zoom-in' }} 
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )
+                  <div className="aparecer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {(Array.isArray(seleccionado.menuUrl) ? seleccionado.menuUrl : [seleccionado.menuUrl]).map((url, i) => (
+                      <div key={i}>
+                        {url.toLowerCase().includes('.pdf') ? <a href={url} target="_blank" rel="noreferrer" style={{color: 'var(--accent)', textDecoration: 'underline'}}>📄 ABRIR PDF PARTE {i + 1}</a> : <img src={url} className="menu-preview-img" onClick={() => setImagenAmpliada(url)} style={{ width: '100%', borderRadius: '10px', cursor: 'pointer' }} />}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-              <button 
-                className="order-btn" 
-                onClick={(e) => enviarPedidoWhatsApp(e, seleccionado)}
-              >
-                Pedir Por WhatsApp 📱
-              </button>
+              <button className="order-btn" onClick={(e) => enviarPedidoWhatsApp(e, seleccionado)}>Pedir Por WhatsApp 📱</button>
             </div>
           </div>
         </div>
