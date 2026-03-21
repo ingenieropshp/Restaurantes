@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 import { db } from './firebase'; 
-import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc, setDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore'; 
+import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc, setDoc, serverTimestamp, query, orderBy, where, getDoc } from 'firebase/firestore'; 
 
 const sonidoPop = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-pop-up-light-button-2629.mp3");
 
@@ -18,10 +18,47 @@ function App() {
   const [metricasData, setMetricasData] = useState([]);
   const [verMetricas, setVerMetricas] = useState(false);
   
-  // Estado para filtrar métricas por mes
+  const [branding, setBranding] = useState({
+    titulo: "PISINGO",
+    slogan: "FOOD & DELIVERY"
+  });
+
   const [mesFiltro, setMesFiltro] = useState(new Date().getMonth());
 
-  // --- LÓGICA DE MÉTRICAS ---
+  const obtenerBranding = async () => {
+    try {
+      const docRef = doc(db, "configuracion", "branding");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setBranding(docSnap.data());
+      } else {
+        await setDoc(docRef, { titulo: "PISINGO", slogan: "FOOD & DELIVERY" });
+      }
+    } catch (error) { console.error("Error branding:", error); }
+  };
+
+  const actualizarBranding = async (campo, valor) => {
+    try {
+      const docRef = doc(db, "configuracion", "branding");
+      await updateDoc(docRef, { [campo]: valor });
+      setBranding(prev => ({ ...prev, [campo]: valor }));
+    } catch (error) { console.error("Error actualizando branding:", error); }
+  };
+
+  // --- NUEVA FUNCIÓN DE MÉTRICA DE VISITA ---
+  const registrarVisitaGeneral = async () => {
+    try {
+      await addDoc(collection(db, "metricas"), {
+        restauranteId: "VISITA_GENERAL",
+        nombreRestaurante: "VISITAS TOTALES A LA APP 🌐",
+        fecha: serverTimestamp(),
+        tipoAccion: "page_view"
+      });
+    } catch (error) {
+      console.error("Error al registrar visita:", error);
+    }
+  };
+
   const registrarClickMetrica = async (restaurante) => {
     try {
       await addDoc(collection(db, "metricas"), {
@@ -44,7 +81,7 @@ function App() {
         const data = doc.data();
         return { 
           ...data, 
-          id: doc.id, // Guardamos el ID por si necesitamos borrar individualmente
+          id: doc.id, 
           fechaJS: data.fecha?.toDate() 
         };
       });
@@ -61,7 +98,12 @@ function App() {
 
       const listaOrdenada = Object.entries(conteo)
         .map(([nombre, clics]) => ({ nombre, clics }))
-        .sort((a, b) => b.clics - a.clics);
+        .sort((a, b) => {
+          // Forzar que la visita general siempre esté arriba
+          if (a.nombre.includes("VISITAS TOTALES")) return -1;
+          if (b.nombre.includes("VISITAS TOTALES")) return 1;
+          return b.clics - a.clics;
+        });
 
       setMetricasData(listaOrdenada);
     } catch (error) {
@@ -69,16 +111,14 @@ function App() {
     }
   };
 
-  // --- NUEVA FUNCIÓN: ELIMINAR MÉTRICAS DE UN RESTAURANTE ---
   const eliminarMetricasRestaurante = async (nombreRestaurante) => {
-    const confirmacion = window.confirm(`¿Seguro que quieres resetear los clics de "${nombreRestaurante}" para este mes?`);
+    const confirmacion = window.confirm(`¿Seguro que quieres resetear los registros de "${nombreRestaurante}"?`);
     if (!confirmacion) return;
 
     try {
       const q = query(collection(db, "metricas"), where("nombreRestaurante", "==", nombreRestaurante));
       const querySnapshot = await getDocs(q);
       
-      // Filtramos en cliente por mes para ser precisos
       const promesasBorrado = querySnapshot.docs
         .filter(doc => {
           const fecha = doc.data().fecha?.toDate();
@@ -87,11 +127,10 @@ function App() {
         .map(docRef => deleteDoc(doc(db, "metricas", docRef.id)));
 
       await Promise.all(promesasBorrado);
-      alert("¡Clics reseteados con éxito! 🏆");
-      obtenerMetricas(); // Refrescar tabla
+      alert("¡Registros limpiados! ✅");
+      obtenerMetricas(); 
     } catch (error) {
       console.error("Error al eliminar métricas:", error);
-      alert("Error al intentar borrar los registros.");
     }
   };
 
@@ -99,7 +138,6 @@ function App() {
     if (verMetricas) obtenerMetricas();
   }, [mesFiltro, verMetricas]);
 
-  // --- LÓGICA DE WHATSAPP ---
   const enviarPedidoWhatsApp = (e, restaurante) => {
     e.stopPropagation(); 
     registrarClickMetrica(restaurante);
@@ -110,17 +148,14 @@ function App() {
       ? restaurante.mensajePersonalizado 
       : `¡Hola! Quiero hacer un pedido en ${nombreRestaurante}.`;
 
-    const texto = `PIZINGO PEDIDOS \n` +
-                 
+    const texto = `PIZINGO PEDIDOS \n\n` +
                   `${saludoCustom}\n\n` +
-                  `--------------------------\n` +
                   `¿Me confirman disponibilidad? `;
 
     const enlace = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(texto)}`;
     window.open(enlace, '_blank');
   };
 
-  // --- LÓGICA DE TEMA ---
   const [tema, setTema] = useState(localStorage.getItem("tema_turbo") || "dark");
 
   useEffect(() => {
@@ -133,7 +168,6 @@ function App() {
     sonidoPop.play().catch(() => {}); 
   };
 
-  // --- CATEGORÍAS ---
   const [categorias, setCategorias] = useState(["Todos", "Favoritos"]);
   const [favoritos, setFavoritos] = useState(() => {
     const guardados = localStorage.getItem("favoritos_turbo");
@@ -180,7 +214,28 @@ function App() {
     }
   };
 
-  // --- DATOS FIREBASE ---
+  const editarCategoria = async (index, nombreViejo) => {
+    const nombreNuevo = prompt("Editar nombre de la categoría:", nombreViejo);
+    if (!nombreNuevo || nombreNuevo === nombreViejo || nombreNuevo === "Todos" || nombreNuevo === "Favoritos") return;
+
+    try {
+      const nuevaLista = [...categorias];
+      nuevaLista[index] = nombreNuevo;
+      await guardarCategorias(nuevaLista);
+
+      const q = query(collection(db, "restaurante"), where("categoria", "==", nombreViejo));
+      const querySnapshot = await getDocs(q);
+      const promesas = querySnapshot.docs.map(restDoc => 
+        updateDoc(doc(db, "restaurante", restDoc.id), { categoria: nombreNuevo })
+      );
+      await Promise.all(promesas);
+      obtenerDatos();
+      alert(`Categoría actualizada a "${nombreNuevo}" ✅`);
+    } catch (error) {
+      console.error("Error al editar categoría:", error);
+    }
+  };
+
   const obtenerDatos = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "restaurante")); 
@@ -205,6 +260,17 @@ function App() {
         };
       });
       setRestaurantesFB(docs);
+
+      const params = new URLSearchParams(window.location.search);
+      const compartidoId = params.get('id');
+      if (compartidoId) {
+        const encontrado = docs.find(r => r.id === compartidoId);
+        if (encontrado) {
+            setSeleccionado(encontrado);
+            setActiveTab('info');
+        }
+      }
+
     } catch (error) { console.error("Error al obtener datos:", error); } finally { setCargando(false); }
   };
 
@@ -224,6 +290,7 @@ function App() {
         menuUrl: "",
         facebookUrl: "",
         instagramUrl: "",
+        tiktokUrl: "",
         horario: { apertura: 8, cierre: 20 }
       };
       await addDoc(collection(db, "restaurante"), nuevoRestaurante);
@@ -286,6 +353,9 @@ function App() {
   useEffect(() => { 
     obtenerDatos(); 
     obtenerCategorias(); 
+    obtenerBranding();
+    // DISPARAR EL REGISTRO DE VISITA AL CARGAR LA APP
+    registrarVisitaGeneral();
     const timer = setInterval(() => setHoraActual(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -311,7 +381,7 @@ function App() {
     return (
       <div className="loading-screen">
         <div className="loading-content">
-          <h1 className="title">PISINGO<span><span className="neon-duck">🦆</span></span></h1>
+          <h1 className="title">{branding.titulo}<span><span className="neon-duck">🦆</span></span></h1>
           <div className="spinner"></div>
           <p className="loading-text">Cocinando la experiencia...</p>
         </div>
@@ -325,24 +395,41 @@ function App() {
         {tema === "dark" ? "🌙" : "☀️"}
       </button>
 
-       {/* --- ENCABEZADO - TITULO --- */}
-      <header className="app-header" style={{ paddingTop: '40px', paddingBottom: '20px' }}>
-        <h1 className="title">PISINGO<span><span className="neon-duck">🦆</span></span></h1>
-        <p className="slogan" style={{ letterSpacing: '5px', fontWeight: '700', color: 'var(--accent)', fontSize: '0.8rem', textAlign: 'center' }}>
-          FOOD & DELIVERY
-        </p>
+      <header className="app-header" style={{ paddingTop: '40px', paddingBottom: '20px', textAlign: 'center' }}>
+        {esAdmin ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+            <input 
+              className="title" 
+              style={{ background: 'transparent', border: '1px dashed var(--accent)', color: 'white', textAlign: 'center', width: 'auto' }}
+              defaultValue={branding.titulo}
+              onBlur={(e) => actualizarBranding("titulo", e.target.value.toUpperCase())}
+            />
+            <input 
+              className="slogan" 
+              style={{ background: 'transparent', border: '1px dashed var(--accent)', color: 'var(--accent)', textAlign: 'center', fontSize: '0.8rem', width: '80%' }}
+              defaultValue={branding.slogan}
+              onBlur={(e) => actualizarBranding("slogan", e.target.value.toUpperCase())}
+            />
+          </div>
+        ) : (
+          <>
+            <h1 className="title" onClick={() => window.location.href = window.location.origin + window.location.pathname} style={{cursor: 'pointer'}}>{branding.titulo}<span><span className="neon-duck">🦆</span></span></h1>
+            <p className="slogan" style={{ letterSpacing: '5px', fontWeight: '700', color: 'var(--accent)', fontSize: '0.8rem' }}>
+              {branding.slogan}
+            </p>
+          </>
+        )}
       </header>
       
       {esAdmin && (
         <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px'}}>
-           <button className="exit-admin-btn" onClick={() => { setEsAdmin(false); setVerMetricas(false); }}>Salir Admin 🔒</button>
-           <button className="exit-admin-btn" onClick={() => { setVerMetricas(!verMetricas); if(!verMetricas) obtenerMetricas(); }} style={{background: 'var(--accent)', color: 'black'}}>
-             {verMetricas ? "Ver Restaurantes ✏️" : "Dashboard de Ventas 📊"}
-           </button>
+            <button className="exit-admin-btn" onClick={() => { setEsAdmin(false); setVerMetricas(false); }}>Salir Admin 🔒</button>
+            <button className="exit-admin-btn" onClick={() => { setVerMetricas(!verMetricas); if(!verMetricas) obtenerMetricas(); }} style={{background: 'var(--accent)', color: 'black'}}>
+              {verMetricas ? "Ver Restaurantes ✏️" : "Dashboard de Ventas 📊"}
+            </button>
         </div>
       )}
 
-      {/* --- DASHBOARD DE MÉTRICAS --- */}
       {esAdmin && verMetricas ? (
         <div className="aparecer" style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
           <div style={{textAlign: 'center', marginBottom: '25px'}}>
@@ -352,18 +439,10 @@ function App() {
               value={mesFiltro} 
               onChange={(e) => setMesFiltro(e.target.value)}
               className="search-input"
-              style={{
-                width: 'auto', 
-                minWidth: '200px', 
-                marginBottom: '10px',
-                backgroundColor: '#1a1b22', 
-                color: 'white'             
-              }}
+              style={{ width: 'auto', minWidth: '200px', marginBottom: '10px', backgroundColor: '#1a1b22', color: 'white' }}
             >
               {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map((mes, i) => (
-                <option key={i} value={i} style={{backgroundColor: '#1a1b22', color: 'white'}}>
-                  {mes}
-                </option>
+                <option key={i} value={i} style={{backgroundColor: '#1a1b22', color: 'white'}}>{mes}</option>
               ))}
             </select>
           </div>
@@ -373,41 +452,26 @@ function App() {
               <thead>
                 <tr style={{borderBottom: '2px solid var(--accent)', textAlign: 'left'}}>
                   <th style={{padding: '15px'}}>Puesto</th>
-                  <th style={{padding: '15px'}}>Restaurante</th>
-                  <th style={{padding: '15px', textAlign: 'center'}}>Clicks WhatsApp</th>
+                  <th style={{padding: '15px'}}>Nombre / Métrica</th>
+                  <th style={{padding: '15px', textAlign: 'center'}}>Clicks / Visitas</th>
                   <th style={{padding: '15px', textAlign: 'center'}}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {metricasData.length > 0 ? metricasData.map((item, i) => (
-                  <tr key={i} style={{borderBottom: '1px solid rgba(0,242,255,0.1)'}}>
-                    <td style={{padding: '15px', fontWeight: 'bold'}}>
-                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
-                    </td>
-                    <td style={{padding: '15px'}}>{item.nombre}</td>
+                  <tr key={i} style={{
+                    borderBottom: '1px solid rgba(0,242,255,0.1)',
+                    backgroundColor: item.nombre.includes("VISITAS TOTALES") ? 'rgba(0, 242, 255, 0.05)' : 'transparent'
+                  }}>
+                    <td style={{padding: '15px', fontWeight: 'bold'}}>{item.nombre.includes("VISITAS TOTALES") ? "⭐" : (i === 0 || (metricasData[0].nombre.includes("VISITAS TOTALES") && i === 1) ? "🥇" : `#${i + 1}`)}</td>
+                    <td style={{padding: '15px', fontWeight: item.nombre.includes("VISITAS TOTALES") ? 'bold' : 'normal'}}>{item.nombre}</td>
                     <td style={{padding: '15px', textAlign: 'center', color: 'var(--accent)', fontWeight: 'bold'}}>{item.clics}</td>
                     <td style={{padding: '15px', textAlign: 'center'}}>
-                      <button 
-                        onClick={() => eliminarMetricasRestaurante(item.nombre)}
-                        style={{
-                          background: '#ff4b2b',
-                          color: 'white',
-                          border: 'none',
-                          padding: '5px 10px',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                          fontSize: '0.7rem',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        RESETEAR 🗑️
-                      </button>
+                      <button onClick={() => eliminarMetricasRestaurante(item.nombre)} style={{ background: '#ff4b2b', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 'bold' }}>RESETEAR 🗑️</button>
                     </td>
                   </tr>
                 )) : (
-                  <tr>
-                    <td colSpan="4" style={{padding: '30px', textAlign: 'center', opacity: 0.6}}>No hay datos registrados en este mes.</td>
-                  </tr>
+                  <tr><td colSpan="4" style={{padding: '30px', textAlign: 'center', opacity: 0.6}}>No hay datos registrados en este mes.</td></tr>
                 )}
               </tbody>
             </table>
@@ -416,9 +480,14 @@ function App() {
       ) : (
         <>
           <div className="category-container">
-            {categorias.map(cat => (
+            {categorias.map((cat, index) => (
               <div key={cat} style={{position: 'relative', display: 'inline-block'}}>
-                <button className={`category-btn ${filtroCategoria === cat ? 'active' : ''}`} onClick={() => setFiltroCategoria(cat)}>
+                <button 
+                  className={`category-btn ${filtroCategoria === cat ? 'active' : ''}`} 
+                  onClick={() => setFiltroCategoria(cat)}
+                  onDoubleClick={() => { if(esAdmin && cat !== "Todos" && cat !== "Favoritos") editarCategoria(index, cat) }}
+                  title={esAdmin ? "Doble clic para editar" : ""}
+                >
                   {cat === "Favoritos" ? `❤️ ${cat}` : cat}
                 </button>
                 {esAdmin && cat !== "Todos" && cat !== "Favoritos" && (
@@ -459,15 +528,7 @@ function App() {
                         <button className="admin-icon-btn del" onClick={(e) => eliminarRestaurante(e, res.id, res.nombre)}>🗑️ Restaurante</button>
                       </div>
                     ) : (
-                      <>
-                        <button className={`fav-btn ${favoritos.includes(res.id) ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); favoritos.includes(res.id) ? setFavoritos(favoritos.filter(f => f !== res.id)) : setFavoritos([...favoritos, res.id]); }}>{favoritos.includes(res.id) ? '❤️' : '🤍'}</button>
-                        <button className="share-btn" onClick={(e) => { 
-                          e.stopPropagation(); 
-                          const texto = `¡Mira este restaurante en Turbo! 🌴\n\n*${res.nombre}*\n📍 Barrio: ${res.barrio || 'Turbo'}\n🍴 Categoría: ${res.categoria}`;
-                          if (navigator.share) navigator.share({ title: res.nombre, text: texto, url: window.location.href });
-                          else window.open(`https://wa.me/?text=${encodeURIComponent(texto + "\n" + window.location.href)}`, '_blank');
-                        }}>🔗</button>
-                      </>
+                      <button className={`fav-btn ${favoritos.includes(res.id) ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); favoritos.includes(res.id) ? setFavoritos(favoritos.filter(f => f !== res.id)) : setFavoritos([...favoritos, res.id]); }}>{favoritos.includes(res.id) ? '❤️' : '🤍'}</button>
                     )}
                   </div>
 
@@ -487,6 +548,10 @@ function App() {
                         <input type="text" defaultValue={res.barrio} onBlur={e => actualizarDato(res.id, "barrio", e.target.value)} placeholder="Barrio" />
                         <input type="text" defaultValue={res.linkUbicacion} onBlur={e => actualizarDato(res.id, "linkUbicacion", e.target.value)} placeholder="Link Maps" />
                         <input type="text" defaultValue={res.telefono} onBlur={e => actualizarDato(res.id, "telefono", e.target.value)} placeholder="Tel (57...)" />
+                        <input type="text" defaultValue={res.instagramUrl} onBlur={e => actualizarDato(res.id, "instagramUrl", e.target.value)} placeholder="Enlace Instagram" />
+                        <input type="text" defaultValue={res.facebookUrl} onBlur={e => actualizarDato(res.id, "facebookUrl", e.target.value)} placeholder="Enlace Facebook" />
+                        <input type="text" defaultValue={res.tiktokUrl} onBlur={e => actualizarDato(res.id, "tiktokUrl", e.target.value)} placeholder="Enlace TikTok" />
+                        
                         <textarea defaultValue={res.mensajePersonalizado} onBlur={e => actualizarDato(res.id, "mensajePersonalizado", e.target.value)} style={{gridColumn: '1 / -1', background: '#1a1b22', color: 'white'}} />
                         <div className="admin-hours">
                           Abre: <input type="number" defaultValue={res.hAperturaRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, apertura: parseInt(e.target.value) })} />
@@ -499,7 +564,36 @@ function App() {
                         <h3>{res.nombre}</h3>
                         <p style={{color: 'var(--accent)', fontWeight: 'bold'}}>🏠 Barrio: {res.barrio || 'Turbo'}</p>
                         <p onClick={(e) => { e.stopPropagation(); window.open(res.linkUbicacion || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(res.nombre + " Turbo")}`, '_blank'); }} style={{cursor: 'pointer'}}>📍 Ver Ubicación</p>
-                        <small>🕒 {res.aperturaTexto} - {res.cierreTexto}</small>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '5px' }}>
+                          <small>🕒 {res.aperturaTexto} - {res.cierreTexto}</small>
+                          <button 
+                            className="share-btn-inline" 
+                            style={{ background: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: '5px', padding: '2px 8px', fontSize: '0.7rem', cursor: 'pointer', fontWeight: 'bold' }}
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              const linkCompartir = `${window.location.origin}${window.location.pathname}?id=${res.id}`;
+                              const textoWhatsApp = 
+                                `¡Mira este sitio en Turbo! 🌴\n\n` +
+                                `🍴 *${res.nombre}*\n` +
+                                `📍 Zona: ${res.barrio || 'Turbo'}\n\n` +
+                                `Revisa el menú aquí: `;
+                              
+                              if (navigator.share) {
+                                navigator.share({ 
+                                  title: res.nombre, 
+                                  text: textoWhatsApp, 
+                                  url: linkCompartir 
+                                }).catch(console.error);
+                              } else {
+                                const fullMessage = `${textoWhatsApp} ${linkCompartir}`;
+                                window.open(`https://wa.me/?text=${encodeURIComponent(fullMessage)}`, '_blank');
+                              }
+                            }}
+                          >
+                            COMPARTIR 🔗
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>
@@ -513,15 +607,15 @@ function App() {
       {esAdmin && !verMetricas && <button className="fab-button" onClick={agregarRestaurante}>+</button>}
 
       {seleccionado && (
-        <div className="modal-overlay" onClick={() => setSeleccionado(null)}>
+        <div className="modal-overlay" onClick={() => { setSeleccionado(null); window.history.replaceState({}, '', window.location.pathname); }}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setSeleccionado(null)}>×</button>
+            <button className="close-btn" onClick={() => { setSeleccionado(null); window.history.replaceState({}, '', window.location.pathname); }}>×</button>
             <img src={seleccionado.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="modal-img" alt={seleccionado.nombre} />
             <div className="modal-body">
               <h2>{seleccionado.nombre}</h2>
               <div className="tabs-header">
                 <button className={`tab-btn ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>Info</button>
-                {seleccionado.menuUrl && <button className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>Menú</button>}
+                {seleccionado.menuUrl && (seleccionado.menuUrl.length > 0) && <button className={`tab-btn ${activeTab === 'menu' ? 'active' : ''}`} onClick={() => setActiveTab('menu')}>Menú</button>}
               </div>
               <div className="tab-content">
                 {activeTab === 'info' ? (
@@ -529,17 +623,22 @@ function App() {
                     <p>🏠 <strong>Barrio:</strong> {seleccionado.barrio || 'Turbo'}</p>
                     <p>🕒 <strong>Horario:</strong> {seleccionado.aperturaTexto} - {seleccionado.cierreTexto}</p>
                     <p>📞 <strong>Teléfono:</strong> {seleccionado.telefono}</p>
-                    <div className="action-buttons-grid">
+                    <div className="action-buttons-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginTop: '15px' }}>
                       <button className="maps-btn" onClick={() => window.open(seleccionado.linkUbicacion || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seleccionado.nombre + " Turbo")}`, '_blank')}>🗺️ Maps</button>
-                      {seleccionado.instagramUrl && <button className="ig-btn" onClick={() => window.open(seleccionado.instagramUrl, '_blank')}>📸 Instagram</button>}
-                      {seleccionado.facebookUrl && <button className="fb-btn" onClick={() => window.open(seleccionado.facebookUrl, '_blank')}>🔵 Facebook</button>}
+                      {seleccionado.instagramUrl && <button className="ig-btn" onClick={() => window.open(seleccionado.instagramUrl, '_blank')} style={{ background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white', border: 'none' }}>📸 Instagram</button>}
+                      {seleccionado.facebookUrl && <button className="fb-btn" onClick={() => window.open(seleccionado.facebookUrl, '_blank')} style={{ background: '#1877F2', color: 'white', border: 'none' }}>🔵 Facebook</button>}
+                      {seleccionado.tiktokUrl && <button className="tiktok-btn" onClick={() => window.open(seleccionado.tiktokUrl, '_blank')} style={{ background: '#000000', color: '#ffffff', border: 'none', position: 'relative', boxShadow: '-2px 0 0 #00f2ff, 2px 0 0 #ff0050', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.8rem' }}>🎵 TikTok</button>}
                     </div>
                   </div>
                 ) : (
                   <div className="aparecer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {(Array.isArray(seleccionado.menuUrl) ? seleccionado.menuUrl : [seleccionado.menuUrl]).map((url, i) => (
                       <div key={i}>
-                        {url.toLowerCase().includes('.pdf') ? <a href={url} target="_blank" rel="noreferrer" style={{color: 'var(--accent)', textDecoration: 'underline'}}>📄 ABRIR PDF PARTE {i + 1}</a> : <img src={url} className="menu-preview-img" onClick={() => setImagenAmpliada(url)} style={{ width: '100%', borderRadius: '10px', cursor: 'pointer' }} />}
+                        {url.toLowerCase().includes('.pdf') ? (
+                          <a href={url} target="_blank" rel="noreferrer" style={{color: 'var(--accent)', textDecoration: 'underline', fontWeight: 'bold', display: 'block', padding: '10px', textAlign: 'center'}}>📄 ABRIR MENU PDF {i + 1}</a>
+                        ) : (
+                          <img src={url} className="menu-preview-img" onClick={() => setImagenAmpliada(url)} style={{ width: '100%', borderRadius: '10px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }} alt={`Menú ${i+1}`} />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -554,7 +653,7 @@ function App() {
       {imagenAmpliada && (
         <div className="lightbox-overlay" onClick={() => setImagenAmpliada(null)}>
           <button className="close-lightbox" onClick={() => setImagenAmpliada(null)}>×</button>
-          <img src={imagenAmpliada} className="lightbox-img" alt="Ampliado" />
+          <img src={imagenAmpliada} className="lightbox-img" alt="Menu ampliado" />
         </div>
       )}
     </div>
