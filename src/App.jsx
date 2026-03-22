@@ -19,7 +19,7 @@ function App() {
   const [verMetricas, setVerMetricas] = useState(false);
   
   const [branding, setBranding] = useState({
-    titulo: "PISINGO",
+    titulo: "PISIN",
     slogan: "FOOD & DELIVERY"
   });
 
@@ -32,7 +32,7 @@ function App() {
       if (docSnap.exists()) {
         setBranding(docSnap.data());
       } else {
-        await setDoc(docRef, { titulo: "PISINGO", slogan: "FOOD & DELIVERY" });
+        await setDoc(docRef, { titulo: "PISIN", slogan: "FOOD & DELIVERY" });
       }
     } catch (error) { console.error("Error branding:", error); }
   };
