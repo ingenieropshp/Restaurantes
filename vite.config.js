@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-//import { VitePWA } from 'vite-plugin-pwa'
+// import { VitePWA } from 'vite-plugin-pwa' // Mantener comentado
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    //VitePWA({
+    /* 
+    VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
@@ -35,6 +36,7 @@ export default defineConfig({
           }
         ]
       }
-    })
+    }) 
+    */
   ]
 })
