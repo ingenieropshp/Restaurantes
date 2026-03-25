@@ -1,42 +1,41 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-// import { VitePWA } from 'vite-plugin-pwa' // Mantener comentado
+import { fileURLToPath } from 'url'
+import path from 'path'
 
-// https://vite.dev/config/
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export default defineConfig({
+  base: './', 
   plugins: [
     react(),
-    /* 
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-      manifest: {
-        name: 'PISIN',
-        short_name: 'PISIN',
-        description: 'Guía de restaurantes de Turbo, Antioquia',
-        theme_color: '#0d0d0d',
-        background_color: '#0d0d0d',
-        display: 'standalone',
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      }
-    }) 
-    */
-  ]
+  ],
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
+      // Esto le dice a Cloudflare que ignore estos módulos al empaquetar
+      external: [
+        /^node:.*/,
+        'path',
+        'fs',
+        'crypto',
+        'os',
+        'url',
+        'util',
+        'events',
+        'process'
+      ],
+    },
+  },
+  resolve: {
+    alias: {
+      // Proporciona un alias vacío para módulos de Node que Firebase pueda buscar
+      'path': 'path-browserify',
+    }
+  }
 })
