@@ -18,24 +18,18 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html'),
       },
-      // Esto le dice a Cloudflare que ignore estos módulos al empaquetar
+      // Solo externalizamos módulos internos de Node que Cloudflare no soporta
       external: [
         /^node:.*/,
         'path',
         'fs',
-        'crypto',
         'os',
+        'crypto',
         'url',
         'util',
         'events',
         'process'
       ],
     },
-  },
-  resolve: {
-    alias: {
-      // Proporciona un alias vacío para módulos de Node que Firebase pueda buscar
-      'path': 'path-browserify',
-    }
   }
 })
