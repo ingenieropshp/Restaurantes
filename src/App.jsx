@@ -44,7 +44,6 @@ function App() {
   const [imagenAmpliada, setImagenAmpliada] = useState(null); 
   const [nuevaCatNombre, setNuevaCatNombre] = useState("");
 
-  // Control de selección por URL (Deep Linking)
   useEffect(() => {
     if (seleccionadoURL) {
       setSeleccionado(seleccionadoURL);
@@ -52,7 +51,6 @@ function App() {
     }
   }, [seleccionadoURL]);
 
-  // Limpiar URL al cerrar modal
   const cerrarModal = () => {
     setSeleccionado(null);
     const url = new URL(window.location);
@@ -130,22 +128,52 @@ function App() {
 
       {esAdmin && verMetricas ? (
         <div className="aparecer" style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
-          {/* ... Sección de métricas igual ... */}
           <div style={{textAlign: 'center', marginBottom: '25px'}}>
             <h2 style={{color: 'var(--accent)', textShadow: '0 0 10px var(--accent)'}}>REYES DE PISINGO 👑</h2>
             
-            <div style={{display: 'flex', justifyContent: 'center', gap: '20px', margin: '15px 0'}}>
-                <div style={{background: 'rgba(255,255,255,0.05)', padding: '10px 20px', borderRadius: '10px', border: '1px solid #00f2ff'}}>
-                    <small style={{display: 'block', opacity: 0.7}}>TRÁFICO MÓVIL</small>
-                    <span style={{fontSize: '1.2rem', fontWeight: 'bold'}}>📱 {totalMovil}</span>
+            {/* Tarjetas de Resumen Mejoradas */}
+            <div style={{display: 'flex', justifyContent: 'center', gap: '15px', margin: '15px 0', flexWrap: 'wrap'}}>
+                <div style={{background: 'rgba(255,255,255,0.05)', padding: '10px 15px', borderRadius: '10px', border: '1px solid #00f2ff', minWidth: '100px'}}>
+                    <small style={{display: 'block', opacity: 0.7, fontSize: '0.65rem'}}>MÓVIL</small>
+                    <span style={{fontSize: '1.1rem', fontWeight: 'bold'}}>📱 {totalMovil}</span>
                 </div>
-                <div style={{background: 'rgba(255,255,255,0.05)', padding: '10px 20px', borderRadius: '10px', border: '1px solid #00f2ff'}}>
-                    <small style={{display: 'block', opacity: 0.7}}>TRÁFICO PC</small>
-                    <span style={{fontSize: '1.2rem', fontWeight: 'bold'}}>💻 {totalPC}</span>
+                <div style={{background: 'rgba(255,255,255,0.05)', padding: '10px 15px', borderRadius: '10px', border: '1px solid #00f2ff', minWidth: '100px'}}>
+                    <small style={{display: 'block', opacity: 0.7, fontSize: '0.65rem'}}>PC</small>
+                    <span style={{fontSize: '1.1rem', fontWeight: 'bold'}}>💻 {totalPC}</span>
+                </div>
+                <div style={{background: 'rgba(255,174,0,0.1)', padding: '10px 15px', borderRadius: '10px', border: '1px solid #ffae00', minWidth: '120px'}}>
+                    <small style={{display: 'block', opacity: 0.7, fontSize: '0.65rem', color: '#ffae00'}}>HORA PICO</small>
+                    <span style={{fontSize: '1.1rem', fontWeight: 'bold'}}>⏰ {metricasData.find(m => m.nombre.includes("HORA PICO"))?.clics || "--:--"}</span>
                 </div>
             </div>
 
-            <p style={{marginBottom: '10px'}}>Filtrar por mes:</p>
+            {/* Gráfica de Barras de Popularidad */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '15px', border: '1px solid rgba(0,242,255,0.2)', marginBottom: '20px' }}>
+                <h3 style={{fontSize: '0.8rem', color: '#aaa', marginBottom: '15px', textAlign: 'left'}}>RANKING DE POPULARIDAD</h3>
+                {metricasData.filter(m => !m.nombre.includes("VISITAS") && !m.nombre.includes("HORA")).slice(0, 5).map((item, index) => {
+                    const maxClics = metricasData.filter(m => !m.nombre.includes("VISITAS"))[0]?.clics || 1;
+                    const porcentaje = (item.clics / maxClics) * 100;
+                    return (
+                        <div key={index} style={{ marginBottom: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '5px' }}>
+                                <span style={{fontWeight: 'bold', color: 'white'}}>{item.nombre}</span>
+                                <span style={{color: 'var(--accent)'}}>{item.clics} clics</span>
+                            </div>
+                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden' }}>
+                                <div style={{ 
+                                    width: `${porcentaje}%`, 
+                                    height: '100%', 
+                                    background: 'linear-gradient(90deg, #00f2ff, #0072ff)',
+                                    boxShadow: '0 0 8px rgba(0,242,255,0.5)',
+                                    transition: 'width 1s ease-in-out'
+                                }}></div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <p style={{marginBottom: '10px', fontSize: '0.9rem'}}>Mes de consulta:</p>
             <select 
               value={mesFiltro} 
               onChange={(e) => {
@@ -153,7 +181,7 @@ function App() {
                 obtenerMetricas(e.target.value);
               }}
               className="search-input"
-              style={{ width: 'auto', minWidth: '200px', marginBottom: '10px', backgroundColor: '#1a1b22', color: 'white' }}
+              style={{ width: 'auto', minWidth: '200px', marginBottom: '20px', backgroundColor: '#1a1b22', color: 'white' }}
             >
               {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map((mes, i) => (
                 <option key={i} value={i} style={{backgroundColor: '#1a1b22', color: 'white'}}>{mes}</option>
@@ -162,12 +190,12 @@ function App() {
           </div>
 
           <div style={{overflowX: 'auto', background: 'rgba(255,255,255,0.05)', borderRadius: '15px', border: '1px solid var(--accent)', padding: '10px', marginBottom: '40px'}}>
-            <table style={{width: '100%', borderCollapse: 'collapse', color: 'white'}}>
+            <table style={{width: '100%', borderCollapse: 'collapse', color: 'white', fontSize: '0.85rem'}}>
               <thead>
                 <tr style={{borderBottom: '2px solid var(--accent)', textAlign: 'left'}}>
-                  <th style={{padding: '15px'}}>Puesto</th>
-                  <th style={{padding: '15px'}}>Nombre / Métrica</th>
-                  <th style={{padding: '15px', textAlign: 'center'}}>Clicks / Visitas</th>
+                  <th style={{padding: '15px'}}>Pos.</th>
+                  <th style={{padding: '15px'}}>Restaurante / Métrica</th>
+                  <th style={{padding: '15px', textAlign: 'center'}}>Total</th>
                   <th style={{padding: '15px', textAlign: 'center'}}>Acciones</th>
                 </tr>
               </thead>
@@ -175,25 +203,24 @@ function App() {
                 {metricasData.length > 0 ? metricasData.map((item, i) => (
                   <tr key={i} style={{
                     borderBottom: '1px solid rgba(0,242,255,0.1)',
-                    backgroundColor: item.nombre.includes("VISITAS TOTALES") ? 'rgba(0, 242, 255, 0.05)' : 'transparent'
+                    backgroundColor: item.nombre.includes("VISITAS") ? 'rgba(0, 242, 255, 0.1)' : 'transparent'
                   }}>
-                    <td style={{padding: '15px', fontWeight: 'bold'}}>{item.nombre.includes("VISITAS TOTALES") ? "⭐" : (i === 0 || (metricasData[0].nombre.includes("VISITAS TOTALES") && i === 1) ? "🥇" : `#${i + 1}`)}</td>
-                    <td style={{padding: '15px', fontWeight: item.nombre.includes("VISITAS TOTALES") ? 'bold' : 'normal'}}>
-                        {item.nombre}
+                    <td style={{padding: '15px', fontWeight: 'bold'}}>
+                        {item.nombre.includes("VISITAS") ? "🔥" : item.nombre.includes("HORA") ? "⏰" : `#${i + 1}`}
                     </td>
+                    <td style={{padding: '15px'}}>{item.nombre}</td>
                     <td style={{padding: '15px', textAlign: 'center', color: 'var(--accent)', fontWeight: 'bold'}}>{item.clics}</td>
                     <td style={{padding: '15px', textAlign: 'center'}}>
-                      <button onClick={() => eliminarMetricasRestaurante(item.nombre)} style={{ background: '#ff4b2b', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 'bold' }}>RESETEAR 🗑️</button>
+                      <button onClick={() => eliminarMetricasRestaurante(item.nombre)} style={{ background: '#ff4b2b', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.65rem' }}>BORRAR</button>
                     </td>
                   </tr>
                 )) : (
-                  <tr><td colSpan="4" style={{padding: '30px', textAlign: 'center', opacity: 0.6}}>No hay datos registrados en este mes.</td></tr>
+                  <tr><td colSpan="4" style={{padding: '30px', textAlign: 'center', opacity: 0.6}}>Sin registros en este mes.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
 
-          {/* Gestión de Categorías */}
           <div style={{background: 'rgba(255,255,255,0.05)', borderRadius: '15px', border: '1px solid var(--accent)', padding: '20px'}}>
             <h2 style={{color: 'var(--accent)', marginBottom: '20px', fontSize: '1.2rem'}}>⚙️ GESTIONAR CATEGORÍAS</h2>
             
@@ -249,7 +276,7 @@ function App() {
       ) : (
         <>
           <input 
-            type="text" className="search-input" placeholder="¿Qué quieres comer hoy?..." 
+            type="text" className="search-input" placeholder="¿Qué buscas hoy?..." 
             value={busqueda} 
             onChange={(e) => {
               setBusqueda(e.target.value);
@@ -305,10 +332,25 @@ function App() {
                             <input type="file" onChange={(e) => subirImagenCloudinary(e, res.id, "imagenUrl")} style={{ display: 'none' }} />
                           </label>
                           <div className="admin-menu-group">
-                            <label className="admin-icon-btn menu"> 📑 {res.menuUrl ? "Añadir al Menú" : "Subir Menú"}
-                              <input type="file" accept="image/*,application/pdf" onChange={(e) => subirImagenCloudinary(e, res.id, "menuUrl")} style={{ display: 'none' }} />
+                            <label className="admin-icon-btn menu"> 📑 Añadir Menú
+                              <input type="file" accept="image/*,application/pdf" onChange={(e) => subirImagenCloudinary(e, res.id, "menuUrl", true)} style={{ display: 'none' }} />
                             </label>
-                            {res.menuUrl && <button className="admin-icon-btn del-menu" onClick={(e) => { e.stopPropagation(); if(window.confirm("¿Eliminar menú?")) actualizarDato(res.id, "menuUrl", ""); }}> ❌ </button>}
+                            {res.menuUrl && res.menuUrl.length > 0 && (
+  <button 
+    className="admin-icon-btn del-menu" 
+    onClick={async (e) => { 
+      e.stopPropagation(); 
+      if(window.confirm("¿Seguro que quieres eliminar todas las fotos del menú?")) {
+        // Usamos la función actualizarDato enviando un array vacío
+        await actualizarDato(res.id, "menuUrl", []); 
+        alert("Menú borrado 🗑️");
+      } 
+    }}
+    style={{ background: '#ff4b2b', border: 'none', marginLeft: '5px' }}
+  > 
+    ❌ 
+  </button>
+)}
                           </div>
                           <button className="admin-icon-btn del" onClick={(e) => { e.stopPropagation(); eliminarRestaurante(e, res.id, res.nombre); }}>🗑️ ELIMINAR</button>
                         </div>
@@ -431,11 +473,22 @@ function App() {
                 ) : (
                   <div className="aparecer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {(Array.isArray(seleccionado.menuUrl) ? seleccionado.menuUrl : [seleccionado.menuUrl]).map((url, i) => (
-                      <div key={i}>
+                      <div key={i} style={{position: 'relative'}}>
                         {url.toLowerCase().includes('.pdf') ? (
                           <a href={url} target="_blank" rel="noreferrer" style={{color: 'var(--accent)', textDecoration: 'underline', fontWeight: 'bold', display: 'block', padding: '10px', textAlign: 'center'}}>📄 ABRIR MENU PDF {i + 1}</a>
                         ) : (
                           <img src={url} className="menu-preview-img" onClick={() => setImagenAmpliada(url)} style={{ width: '100%', borderRadius: '10px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }} alt={`Menú ${i+1}`} />
+                        )}
+                        {esAdmin && (
+                          <button 
+                            onClick={() => {
+                              const nuevoMenu = seleccionado.menuUrl.filter((_, index) => index !== i);
+                              actualizarDato(seleccionado.id, "menuUrl", nuevoMenu);
+                            }}
+                            style={{position: 'absolute', top: '5px', right: '5px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '25px', height: '25px', cursor: 'pointer'}}
+                          >
+                            ×
+                          </button>
                         )}
                       </div>
                     ))}

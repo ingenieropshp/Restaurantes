@@ -3,7 +3,16 @@ import { db } from '../services/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useRestaurantes } from '../hooks/useRestaurantes'; 
 
-export default function AdminDashboard({ metricasData, mesFiltro, setMesFiltro, eliminarMetricasRestaurante }) {
+// Se añaden totalMovil, totalPC y horaPico a las props recibidas
+export default function AdminDashboard({ 
+  metricasData, 
+  mesFiltro, 
+  setMesFiltro, 
+  eliminarMetricasRestaurante,
+  totalMovil, 
+  totalPC,
+  horaPico
+}) {
   const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
   // --- Lógica del Hook ---
@@ -45,15 +54,19 @@ export default function AdminDashboard({ metricasData, mesFiltro, setMesFiltro, 
 
   // Función puente para conectar el formulario con el Hook (Ya adaptada a objetos)
   const handleCrearCategoriaMaestra = async (nombreCat, tipoCat) => {
-    if(!nombreCat) return alert("Escribe un nombre para la categoría");
+    if(!nombreCat.trim()) return alert("Escribe un nombre para la categoría");
     
-    // Llamamos a la función del hook que ahora recibe parámetros
-    // Si tu hook aún usa prompts, esta función los saltará si ya recibe los argumentos
-    await añadirCategoria(nombreCat, tipoCat);
-    
-    // Limpieza de inputs
-    document.getElementById('nombreCat').value = "";
-    alert(`Categoría "${nombreCat.toUpperCase()}" creada correctamente 🚀`);
+    try {
+      // Llamamos a la función del hook que ahora recibe parámetros
+      await añadirCategoria(nombreCat, tipoCat);
+      
+      // Limpieza de inputs
+      document.getElementById('nombreCat').value = "";
+      alert(`Categoría "${nombreCat.toUpperCase()}" creada correctamente 🚀`);
+    } catch (error) {
+      console.error("Error al crear categoría:", error);
+      alert("Error al procesar la categoría");
+    }
   };
 
   return (
@@ -61,12 +74,53 @@ export default function AdminDashboard({ metricasData, mesFiltro, setMesFiltro, 
       
       {/* SECCIÓN DE MÉTRICAS */}
       <div style={{textAlign: 'center', marginBottom: '25px'}}>
-        <h2 style={{color: 'var(--accent)', textShadow: '0 0 10px var(--accent)'}}>REYES DE PIZINGO 👑</h2>
+        <h2 style={{color: 'var(--accent)', textShadow: '0 0 10px var(--accent)'}}>REYES DE PISINGO 👑</h2>
         <select value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)} className="search-input">
           {meses.map((mes, i) => (
             <option key={i} value={i}>{mes}</option>
           ))}
         </select>
+      </div>
+
+      {/* --- BLOQUE DE TRÁFICO Y HORA PICO (ACTUALIZADO) --- */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: '1fr 1fr 1fr', 
+        gap: '10px', 
+        marginBottom: '25px' 
+      }}>
+        <div style={{ 
+          background: 'rgba(0, 242, 255, 0.1)', 
+          padding: '15px', 
+          borderRadius: '12px', 
+          border: '1px solid var(--accent)',
+          textAlign: 'center'
+        }}>
+          <p style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '5px' }}>📱 MÓVIL</p>
+          <h3 style={{ color: 'var(--accent)', fontSize: '1.2rem', margin: 0 }}>{totalMovil || 0}</h3>
+        </div>
+        
+        <div style={{ 
+          background: 'rgba(255, 255, 255, 0.05)', 
+          padding: '15px', 
+          borderRadius: '12px', 
+          border: '1px solid rgba(255,255,255,0.2)',
+          textAlign: 'center'
+        }}>
+          <p style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '5px' }}>💻 PC</p>
+          <h3 style={{ color: 'white', fontSize: '1.2rem', margin: 0 }}>{totalPC || 0}</h3>
+        </div>
+
+        <div style={{ 
+          background: 'rgba(255, 215, 0, 0.1)', 
+          padding: '15px', 
+          borderRadius: '12px', 
+          border: '1px solid #ffd700',
+          textAlign: 'center'
+        }}>
+          <p style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '5px', color: '#ffd700' }}>🔥 HORA PICO</p>
+          <h3 style={{ color: '#ffd700', fontSize: '1.2rem', margin: 0 }}>{horaPico || "---"}</h3>
+        </div>
       </div>
 
       <table style={{width: '100%', borderCollapse: 'collapse', color: 'white', marginBottom: '40px'}}>
@@ -97,7 +151,7 @@ export default function AdminDashboard({ metricasData, mesFiltro, setMesFiltro, 
         </tbody>
       </table>
 
-      {/* --- NUEVA GESTIÓN DE CATEGORÍAS POR NICHO (SELECTOR VISUAL) --- */}
+      {/* --- GESTIÓN DE CATEGORÍAS POR NICHO --- */}
       <div style={{ 
         background: 'rgba(255, 255, 255, 0.03)', 
         padding: '25px', 
@@ -119,10 +173,13 @@ export default function AdminDashboard({ metricasData, mesFiltro, setMesFiltro, 
           />
           <div style={{ display: 'flex', gap: '10px' }}>
             <select className="search-input" id="tipoCat" style={{ flex: 1 }}>
-              <option value="restaurantes">🍴 Restaurantes</option>
-              <option value="salud">🏥 Salud</option>
-              <option value="heladeria">🍦 Heladería</option>
-              <option value="barberia">✂️ Barbería</option>
+              <option value="gastronomia">🍴 gastronomia</option>
+              <option value="consultorios">🏥 consultorios</option>
+              <option value="heladeria">🍦 heladeria</option>
+              <option value="belleza">👨‍🦱 belleza</option>
+              <option value="perfumes">🧴 perfumes</option>
+              <option value="cocteles">🍹 cocteles</option>
+              <option value="estanquillos">🍾 estanquillos</option>
             </select>
             <button 
               onClick={() => {

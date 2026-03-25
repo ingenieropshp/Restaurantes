@@ -548,3 +548,108 @@ table tr:hover {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Scrollbar personalizada para el menú */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
+}
+
+/* Animación de entrada para los submenús */
+.aparecer {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Estilos para el Dashboard de Métricas --- */
+
+.admin-metrics-container {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Tarjetas de Tráfico (Móvil, PC, Hora Pico) */
+.metric-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 242, 255, 0.3);
+  transition: transform 0.3s ease;
+  text-align: center;
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+  box-shadow: 0 5px 15px rgba(0, 242, 255, 0.2);
+}
+
+/* Gráfica de Barras de Popularidad */
+.ranking-bar-container {
+  margin-bottom: 15px;
+}
+
+.ranking-bar-bg {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.ranking-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00f2ff, #0072ff);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+  border-radius: 20px;
+  transition: width 1.5s cubic-bezier(0.1, 0.5, 0.5, 1);
+}
+
+/* Estilos de la Tabla */
+table tr:hover {
+  background: rgba(0, 242, 255, 0.05) !important;
+}
+
+.btn-borrar-metrica {
+  background: #ff4b2b;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-borrar-metrica:hover {
+  background: #ff2400;
+  box-shadow: 0 0 10px rgba(255, 75, 43, 0.4);
+}
+
+/* Animación de entrada */
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.aparecer {
+  animation: aparecer 0.4s ease-out;
+}

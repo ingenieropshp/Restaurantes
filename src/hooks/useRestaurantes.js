@@ -99,7 +99,7 @@ export function useRestaurantes() {
     } catch (error) { console.error("Error al guardar categorías:", error); }
   };
 
-  const añadirCategoria = async (nombreNuevo) => {
+  const añadirCategoria = async (nombreNuevo, tipoNuevo) => {
     const nombre = nombreNuevo || prompt("Nombre de la nueva categoría:");
     if (!nombre) return;
     const nombreUpper = nombre.toUpperCase();
@@ -107,7 +107,7 @@ export function useRestaurantes() {
       alert("Esta categoría ya existe.");
       return;
     }
-    const tipo = prompt("¿A qué sección pertenece? (restaurantes, salud, heladeria o barberia)")?.toLowerCase() || "restaurantes";
+    const tipo = tipoNuevo || prompt("¿A qué sección pertenece? (gastronomia, consultorios, heladeria, belleza, perfumes, cocteles o estanquillos)")?.toLowerCase() || "restaurantes";
     const nuevaCategoriaObj = { nombre: nombreUpper, tipo: tipo };
     const nuevaLista = [...categorias];
     const indexFav = nuevaLista.findIndex(c => c.nombre === "Favoritos");
@@ -269,6 +269,27 @@ export function useRestaurantes() {
     } catch (error) { console.error(error); }
   };
 
+  const eliminarMenu = async (id) => {
+  try {
+    const restauranteRef = doc(db, "RESTAURANTES", id);
+    await updateDoc(restauranteRef, {
+      menuUrl: [] // Limpiamos el array en Firebase
+    });
+    alert("Menú eliminado correctamente");
+  } catch (error) {
+    console.error("Error al eliminar menú:", error);
+  }
+};
+
+  // --- NUEVA FUNCIÓN PARA ELIMINAR IMAGEN DE PERFIL ---
+  const eliminarImagenPerfil = async (id) => {
+    if (!window.confirm("¿Deseas eliminar la foto de perfil?")) return;
+    try {
+      await actualizarDato(id, "imagenUrl", "");
+      alert("Foto de perfil eliminada 🗑️");
+    } catch (error) { console.error("Error al borrar foto:", error); }
+  };
+
   const agregarRestaurante = async () => {
     const nombre = prompt("Nombre del nuevo sitio:");
     if (!nombre) return;
@@ -354,12 +375,37 @@ export function useRestaurantes() {
     } catch (error) { alert("Error al subir archivo."); }
   };
 
+  // --- LOGICA SALUD ---
+  const obtenerSubmenusSalud = async () => {
+    try {
+      const q = query(collection(db, "configuracion_salud"), orderBy("nombre", "asc"));
+      const snapshot = await getDocs(q);
+      setSubmenusSalud(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (e) { console.error(e); }
+  };
+
+  const agregarSalud = async (nombre) => {
+    try {
+      await addDoc(collection(db, "configuracion_salud"), { nombre });
+      obtenerSubmenusSalud();
+    } catch (e) { console.error(e); }
+  };
+
+  const borrarSalud = async (id) => {
+    if (!window.confirm("¿Borrar este submenú?")) return;
+    try {
+      await deleteDoc(doc(db, "configuracion_salud", id));
+      obtenerSubmenusSalud();
+    } catch (e) { console.error(e); }
+  };
+
   useEffect(() => {
     const inicializar = async () => {
       await Promise.all([
         obtenerDatos(), 
         obtenerBranding(), 
-        obtenerCategorias()
+        obtenerCategorias(),
+        obtenerSubmenusSalud()
       ]);
       registrarVisitaGeneral();
     };
@@ -376,6 +422,8 @@ export function useRestaurantes() {
     obtenerMetricas, eliminarMetricasRestaurante, subirImagenCloudinary,
     obtenerEstadoEnVivo, actualizarDato, eliminarRestaurante,
     agregarRestaurante, enviarPedidoWhatsApp, tema, toggleTema,
-    añadirCategoria, eliminarCategoria, editarCategoria, seleccionado, setSeleccionado
+    añadirCategoria, eliminarCategoria, editarCategoria, seleccionado, setSeleccionado,
+    eliminarMenu, eliminarImagenPerfil,
+    submenusSalud, agregarSalud, borrarSalud // Exportados para Salud
   };
 }

@@ -101,102 +101,110 @@ export default function Navbar({
           
           <hr style={{ borderColor: 'rgba(0,242,255,0.1)', margin: '15px 0' }} />
           
-          <ul className="hamburguesa-links" style={{ listStyle: 'none', padding: 0 }}>
-            {/* INICIO */}
-            <li onClick={() => manejarFiltro("Todos")} 
-                style={{ cursor: 'pointer', marginBottom: '15px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              🏠 INICIO
-            </li>
+          {/* CONTENEDOR CON SCROLL PARA SECCIONES */}
+          <div style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: '5px' }}>
+            <ul className="hamburguesa-links" style={{ listStyle: 'none', padding: 0 }}>
+              {/* INICIO */}
+              <li onClick={() => manejarFiltro("Todos")} 
+                  style={{ cursor: 'pointer', marginBottom: '15px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                🏠 INICIO
+              </li>
 
-            {/* FAVORITOS */}
-            <li 
-              onClick={() => manejarFiltro("Favoritos")} 
-              className={favoritos.length > 0 ? 'pulse-favoritos' : ''}
-              style={{ 
-                cursor: 'pointer', 
-                marginBottom: '15px', 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                padding: '10px',
-                borderRadius: '8px',
-                background: favoritos.length > 0 ? 'rgba(255, 0, 0, 0.1)' : 'transparent',
-                border: favoritos.length > 0 ? '1px solid rgba(255, 0, 0, 0.2)' : 'none',
-                color: favoritos.length > 0 ? '#ff4b2b' : 'inherit' 
-              }}
-            >
-              <span style={{ fontWeight: 'bold' }}>❤️ MIS FAVORITOS</span>
-              <span style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 'bold',
-                background: favoritos.length > 0 ? '#ff4b2b' : 'rgba(255,255,255,0.1)',
-                color: 'white',
-                padding: '2px 8px',
-                borderRadius: '10px'
-              }}>
-                {favoritos.length}
-              </span>
-            </li>
-            
-            {/* SECCIONES CON ACORDEÓN */}
-            {[
-              { id: 'restaurantes', label: '🍴 RESTAURANTES', icono: '🍴' },
-              { id: 'salud', label: '🏥 SALUD', icono: '🏥' },
-              { id: 'heladeria', label: '🍦 HELADERÍA', icono: '🍦' },
-              { id: 'barberia', label: '✂️ BARBERÍA', icono: '✂️' }
-            ].map((seccion) => (
-              <div key={seccion.id} style={{ marginBottom: '10px' }}>
-                <li 
-                  onClick={() => toggleAcordeon(seccion.id)} 
-                  style={{ 
-                    cursor: 'pointer', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    padding: '10px 0',
-                    color: acordeonAbierto === seccion.id ? 'var(--accent)' : 'inherit'
-                  }}
-                >
-                  <span>{seccion.label}</span> 
-                  <span style={{ transition: 'transform 0.3s', transform: acordeonAbierto === seccion.id ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                    ▼
-                  </span>
-                </li>
-                {acordeonAbierto === seccion.id && renderSubmenu(seccion.id)}
-              </div>
-            ))}
-
-            {/* PANEL ADMIN */}
-            {esAdmin && (
-              <div style={{ marginTop: '25px', padding: '15px', background: 'rgba(0, 242, 255, 0.05)', borderRadius: '10px', border: '1px solid rgba(0, 242, 255, 0.2)' }}>
-                <li style={{ color: 'var(--accent)', fontSize: '0.7rem', letterSpacing: '2px', fontWeight: 'bold', marginBottom: '10px', listStyle: 'none' }}>
-                  ADMINISTRACIÓN 🔒
-                </li>
-                <li onClick={() => { setVerMetricas(false); setMenuAbierto(false); }} 
-                    style={{ cursor: 'pointer', padding: '10px 0', fontSize: '0.9rem', color: !verMetricas ? 'var(--accent)' : 'inherit', listStyle: 'none' }}>
-                   { !verMetricas ? "● GESTIONANDO SITIOS" : "✏️ EDITAR SITIOS" }
-                </li>
-                <li onClick={() => { if (typeof obtenerMetricas === 'function') obtenerMetricas(); setVerMetricas(true); setMenuAbierto(false); }} 
-                    style={{ cursor: 'pointer', padding: '10px 0', fontSize: '0.9rem', color: verMetricas ? 'var(--accent)' : 'inherit', listStyle: 'none' }}>
-                   { verMetricas ? "● VIENDO ESTADÍSTICAS" : "📊 VER ESTADÍSTICAS" }
-                </li>
-              </div>
-            )}
-
-            {/* CAMBIO DE TEMA */}
-            <li onClick={() => { toggleTema(); setMenuAbierto(false); }} 
+              {/* FAVORITOS */}
+              <li 
+                onClick={() => manejarFiltro("Favoritos")} 
+                className={favoritos.length > 0 ? 'pulse-favoritos' : ''}
                 style={{ 
-                  marginTop: '20px', 
-                  borderTop: '1px solid rgba(255,255,255,0.1)', 
-                  paddingTop: '20px', 
                   cursor: 'pointer', 
-                  color: 'var(--accent)', 
-                  fontSize: '0.85rem',
-                  textAlign: 'center',
-                  fontWeight: 'bold'
+                  marginBottom: '15px', 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  padding: '10px',
+                  borderRadius: '8px',
+                  background: favoritos.length > 0 ? 'rgba(255, 0, 0, 0.1)' : 'transparent',
+                  border: favoritos.length > 0 ? '1px solid rgba(255, 0, 0, 0.2)' : 'none',
+                  color: favoritos.length > 0 ? '#ff4b2b' : 'inherit' 
+                }}
+              >
+                <span style={{ fontWeight: 'bold' }}>❤️ MIS FAVORITOS</span>
+                <span style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: 'bold',
+                  background: favoritos.length > 0 ? '#ff4b2b' : 'rgba(255,255,255,0.1)',
+                  color: 'white',
+                  padding: '2px 8px',
+                  borderRadius: '10px'
                 }}>
-              {tema === 'dark' ? '☀️ CAMBIAR A MODO CLARO' : '🌙 CAMBIAR A MODO OSCURO'}
-            </li>
-          </ul>
+                  {favoritos.length}
+                </span>
+              </li>
+              
+              {/* SECCIONES CON ACORDEÓN */}
+              {[
+                { id: 'gastronomia', label: '🍴 GASTRONOMÍA' },
+                { id: 'consultorios', label: '🩺 CONSULTORIOS' },
+                { id: 'heladeria', label: '🍦 HELADERÍA' },
+                { id: 'belleza', label: ' 👨‍🦱👩‍🦰BELLEZA' },
+                { id: 'perfumes', label: '🧴 PERFUMES'},
+                { id: 'cocteles', label: '🍹 COCTELES' },
+                { id: 'estanquillos', label: '🍾 ESTANQUILLOS'}
+
+              ].map((seccion) => (
+                <div key={seccion.id} style={{ marginBottom: '10px' }}>
+                  <li 
+                    onClick={() => toggleAcordeon(seccion.id)} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      padding: '10px 0',
+                      color: acordeonAbierto === seccion.id ? 'var(--accent)' : 'inherit'
+                    }}
+                  >
+                    <span>{seccion.label}</span> 
+                    <span style={{ transition: 'transform 0.3s', transform: acordeonAbierto === seccion.id ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                      ▼
+                    </span>
+                  </li>
+                  {acordeonAbierto === seccion.id && renderSubmenu(seccion.id)}
+                </div>
+              ))}
+
+              {/* PANEL ADMIN */}
+              {esAdmin && (
+                <div style={{ marginTop: '25px', padding: '15px', background: 'rgba(0, 242, 255, 0.05)', borderRadius: '10px', border: '1px solid rgba(0, 242, 255, 0.2)' }}>
+                  <li style={{ color: 'var(--accent)', fontSize: '0.7rem', letterSpacing: '2px', fontWeight: 'bold', marginBottom: '10px', listStyle: 'none' }}>
+                    ADMINISTRACIÓN 🔒
+                  </li>
+                  <li onClick={() => { setVerMetricas(false); setMenuAbierto(false); }} 
+                      style={{ cursor: 'pointer', padding: '10px 0', fontSize: '0.9rem', color: !verMetricas ? 'var(--accent)' : 'inherit', listStyle: 'none' }}>
+                     { !verMetricas ? "● GESTIONANDO SITIOS" : "✏️ EDITAR SITIOS" }
+                  </li>
+                  <li onClick={() => { if (typeof obtenerMetricas === 'function') obtenerMetricas(); setVerMetricas(true); setMenuAbierto(false); }} 
+                      style={{ cursor: 'pointer', padding: '10px 0', fontSize: '0.9rem', color: verMetricas ? 'var(--accent)' : 'inherit', listStyle: 'none' }}>
+                     { verMetricas ? "● VIENDO ESTADÍSTICAS" : "📊 VER ESTADÍSTICAS" }
+                  </li>
+                </div>
+              )}
+            </ul>
+          </div>
+
+          {/* CAMBIO DE TEMA - FUERA DEL SCROLL */}
+          <li onClick={() => { toggleTema(); setMenuAbierto(false); }} 
+              style={{ 
+                marginTop: 'auto', 
+                borderTop: '1px solid rgba(255,255,255,0.1)', 
+                paddingTop: '20px', 
+                cursor: 'pointer', 
+                color: 'var(--accent)', 
+                fontSize: '0.85rem',
+                textAlign: 'center',
+                fontWeight: 'bold',
+                listStyle: 'none'
+              }}>
+            {tema === 'dark' ? '☀️ CAMBIAR A MODO CLARO' : '🌙 CAMBIAR A MODO OSCURO'}
+          </li>
         </div>
       </nav>
 

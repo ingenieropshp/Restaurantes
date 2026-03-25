@@ -4,7 +4,7 @@ export default function LoadingScreen({ titulo }) {
       <div className="loading-content">
         <h1 className="title">{titulo}<span><span className="neon-duck">🦆</span></span></h1>
         <div className="spinner"></div>
-        <p className="loading-text">Cocinando la experiencia...</p>
+        <p className="loading-text">Preparando tu próxima experiencia...</p>
       </div>
     </div>
   );
