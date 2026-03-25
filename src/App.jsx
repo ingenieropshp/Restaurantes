@@ -14,7 +14,7 @@ function App() {
     busqueda, 
     setBusqueda, 
     setFiltroCategoria,
-    filtroCategoria, // Añadido para la lógica de favoritos
+    filtroCategoria, 
     obtenerMetricas,
     actualizarBranding,
     mesFiltro, 
@@ -44,12 +44,21 @@ function App() {
   const [imagenAmpliada, setImagenAmpliada] = useState(null); 
   const [nuevaCatNombre, setNuevaCatNombre] = useState("");
 
+  // Control de selección por URL (Deep Linking)
   useEffect(() => {
     if (seleccionadoURL) {
       setSeleccionado(seleccionadoURL);
       setActiveTab('info');
     }
   }, [seleccionadoURL]);
+
+  // Limpiar URL al cerrar modal
+  const cerrarModal = () => {
+    setSeleccionado(null);
+    const url = new URL(window.location);
+    url.searchParams.delete('id');
+    window.history.replaceState({}, '', url.pathname);
+  };
 
   const totalMovil = metricasData.filter(m => m.dispositivo === "Móvil").length;
   const totalPC = metricasData.filter(m => m.dispositivo === "PC").length;
@@ -70,11 +79,12 @@ function App() {
         obtenerMetricas={obtenerMetricas}
         tema={tema}
         toggleTema={toggleTema}
-        favoritos={favoritos} // Pasamos los favoritos al Navbar
+        favoritos={favoritos}
       />
 
+      {/* Panel de Control Admin */}
       {esAdmin && (
-        <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px', marginTop: '70px'}}>
+        <div className="admin-controls-bar" style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px', marginTop: '70px'}}>
             <button className="exit-admin-btn" onClick={() => { setEsAdmin(false); setVerMetricas(false); }}>Salir Admin 🔒</button>
             <button 
               className="exit-admin-btn" 
@@ -120,6 +130,7 @@ function App() {
 
       {esAdmin && verMetricas ? (
         <div className="aparecer" style={{maxWidth: '800px', margin: '0 auto', padding: '20px'}}>
+          {/* ... Sección de métricas igual ... */}
           <div style={{textAlign: 'center', marginBottom: '25px'}}>
             <h2 style={{color: 'var(--accent)', textShadow: '0 0 10px var(--accent)'}}>REYES DE PISINGO 👑</h2>
             
@@ -182,6 +193,7 @@ function App() {
             </table>
           </div>
 
+          {/* Gestión de Categorías */}
           <div style={{background: 'rgba(255,255,255,0.05)', borderRadius: '15px', border: '1px solid var(--accent)', padding: '20px'}}>
             <h2 style={{color: 'var(--accent)', marginBottom: '20px', fontSize: '1.2rem'}}>⚙️ GESTIONAR CATEGORÍAS</h2>
             
@@ -246,10 +258,8 @@ function App() {
           />
 
           <div className="restaurant-list">
-            {/* LÓGICA DE ESTADOS VACÍOS (BÚSQUEDA Y FAVORITOS) */}
             {listaFiltrada.length === 0 && !cargando ? (
               filtroCategoria === "Favoritos" ? (
-                /* CASO: FAVORITOS VACÍOS */
                 <div className="vacio-container aparecer" style={{ gridColumn: '1 / -1' }}>
                   <div className="vacio-icon">💔</div>
                   <h3 className="vacio-titulo">Lista vacía</h3>
@@ -257,7 +267,6 @@ function App() {
                   <button className="btn-explorar" onClick={() => setFiltroCategoria("Todos")}>Descubrir sitios</button>
                 </div>
               ) : (
-                /* CASO: BÚSQUEDA SIN RESULTADOS */
                 <div className="aparecer" style={{ 
                   textAlign: 'center', 
                   gridColumn: '1 / -1', 
@@ -339,7 +348,7 @@ function App() {
                               onBlur={e => {
                                 const val = parseInt(e.target.value);
                                 actualizarDato(res.id, "horario", { ...res.horario, apertura: val });
-                                actualizarDato(res.id, "hAperturaRaw", val); // Doble guardado para consistencia
+                                actualizarDato(res.id, "hAperturaRaw", val);
                               }} 
                             />
                             Cierra: <input 
@@ -348,7 +357,7 @@ function App() {
                               onBlur={e => {
                                 const val = parseInt(e.target.value);
                                 actualizarDato(res.id, "horario", { ...res.horario, cierre: val });
-                                actualizarDato(res.id, "hCierreRaw", val); // Doble guardado para consistencia
+                                actualizarDato(res.id, "hCierreRaw", val);
                               }} 
                             />
                           </div>
@@ -392,10 +401,11 @@ function App() {
 
       {esAdmin && !verMetricas && <button className="fab-button" onClick={agregarRestaurante}>+</button>}
 
+      {/* Modal de Detalle */}
       {seleccionado && (
-        <div className="modal-overlay" onClick={() => { setSeleccionado(null); window.history.replaceState({}, '', window.location.pathname); }}>
+        <div className="modal-overlay" onClick={cerrarModal}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => { setSeleccionado(null); window.history.replaceState({}, '', window.location.pathname); }}>×</button>
+            <button className="close-btn" onClick={cerrarModal}>×</button>
             <img src={seleccionado.imagenUrl || 'https://placehold.co/400x200/2e303a/00f2ff?text=Nuevo+Sitio'} className="modal-img" alt={seleccionado.nombre} />
             <div className="modal-body">
               <h2>{seleccionado.nombre}</h2>
@@ -438,6 +448,7 @@ function App() {
         </div>
       )}
 
+      {/* Lightbox para Imágenes */}
       {imagenAmpliada && (
         <div className="lightbox-overlay" onClick={() => setImagenAmpliada(null)}>
           <button className="close-lightbox" onClick={() => setImagenAmpliada(null)}>×</button>
