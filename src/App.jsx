@@ -333,8 +333,24 @@ function App() {
                           
                           <textarea defaultValue={res.mensajePersonalizado} onBlur={e => actualizarDato(res.id, "mensajePersonalizado", e.target.value)} style={{gridColumn: '1 / -1', background: '#1a1b22', color: 'white'}} />
                           <div className="admin-hours">
-                            Abre: <input type="number" defaultValue={res.hAperturaRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, apertura: parseInt(e.target.value) })} />
-                            Cierra: <input type="number" defaultValue={res.hCierreRaw} onBlur={e => actualizarDato(res.id, "horario", { ...res.horario, cierre: parseInt(e.target.value) })} />
+                            Abre: <input 
+                              type="number" 
+                              defaultValue={res.hAperturaRaw} 
+                              onBlur={e => {
+                                const val = parseInt(e.target.value);
+                                actualizarDato(res.id, "horario", { ...res.horario, apertura: val });
+                                actualizarDato(res.id, "hAperturaRaw", val); // Doble guardado para consistencia
+                              }} 
+                            />
+                            Cierra: <input 
+                              type="number" 
+                              defaultValue={res.hCierreRaw} 
+                              onBlur={e => {
+                                const val = parseInt(e.target.value);
+                                actualizarDato(res.id, "horario", { ...res.horario, cierre: val });
+                                actualizarDato(res.id, "hCierreRaw", val); // Doble guardado para consistencia
+                              }} 
+                            />
                           </div>
                         </div>
                       ) : (
