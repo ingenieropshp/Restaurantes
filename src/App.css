@@ -419,3 +419,132 @@ table tr:hover {
     background: rgba(0, 242, 255, 0.05);
 }
 
+/* Contenedor del menú lateral */
+.hamburguesa-nav {
+  position: fixed;
+  top: 0;
+  left: -100%; /* Escondido a la izquierda */
+  width: 280px;
+  height: 100vh;
+  background: rgba(10, 11, 15, 0.98);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+  border-right: 1px solid var(--accent);
+}
+
+.hamburguesa-nav.abierto {
+  left: 0;
+}
+
+.hamburguesa-content {
+  padding: 40px 25px;
+}
+
+.hamburguesa-links {
+  list-style: none;
+  padding: 0;
+}
+
+.hamburguesa-links li {
+  padding: 15px 0;
+  font-size: 1.1rem;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hamburguesa-links li:hover {
+  color: var(--accent);
+  padding-left: 10px;
+}
+
+/* El Botón (Las 3 rayitas) */
+.hamburguesa-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 2100;
+  cursor: pointer;
+  width: 30px;
+  height: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hamburguesa-btn span {
+  width: 100%;
+  height: 3px;
+  background-color: var(--accent);
+  transition: 0.3s;
+  border-radius: 5px;
+  box-shadow: 0 0 5px var(--accent);
+}
+
+/* Animación a X */
+.hamburguesa-btn.activo span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
+.hamburguesa-btn.activo span:nth-child(2) { opacity: 0; }
+.hamburguesa-btn.activo span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+
+.vacio-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  border: 1px dashed rgba(0, 242, 255, 0.2);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.02);
+  margin: 20px auto;
+  max-width: 500px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.vacio-icon {
+  font-size: 3.5rem;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
+}
+
+.vacio-titulo {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
+}
+
+.vacio-texto {
+  color: #ccc;
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-bottom: 25px;
+}
+
+.btn-explorar {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 10px 25px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.btn-explorar:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 0 15px var(--accent);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
