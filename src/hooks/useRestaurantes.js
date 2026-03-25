@@ -13,7 +13,6 @@ export function useRestaurantes() {
   const [submenusSalud, setSubmenusSalud] = useState([]); 
   const [cargando, setCargando] = useState(true);
   
-  // Estado inicial corregido para evitar errores de renderizado
   const [categorias, setCategorias] = useState([
     { nombre: "Todos", tipo: "sistema" },
     { nombre: "Favoritos", tipo: "sistema" }
@@ -72,14 +71,12 @@ export function useRestaurantes() {
     } catch (error) { console.error("Error al actualizar branding:", error); }
   };
 
-  // --- LÓGICA DE CATEGORÍAS (OPTIMIZADA) ---
   const obtenerCategorias = async () => {
     try {
       const docRef = doc(db, "configuracion", "categorias");
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data().lista;
-        // Aseguramos que siempre existan "Todos" y "Favoritos"
         if (!data.find(c => c.nombre === "Todos")) data.unshift({ nombre: "Todos", tipo: "sistema" });
         setCategorias(data);
       } else {
@@ -103,33 +100,25 @@ export function useRestaurantes() {
   };
 
   const añadirCategoria = async (nombreNuevo) => {
-    // Si no viene nombre (desde App.jsx), lo pedimos (compatible con ambos métodos)
     const nombre = nombreNuevo || prompt("Nombre de la nueva categoría:");
     if (!nombre) return;
-
     const nombreUpper = nombre.toUpperCase();
-
     if (categorias.some(c => c.nombre === nombreUpper)) {
       alert("Esta categoría ya existe.");
       return;
     }
-
     const tipo = prompt("¿A qué sección pertenece? (restaurantes, salud, heladeria o barberia)")?.toLowerCase() || "restaurantes";
-    
     const nuevaCategoriaObj = { nombre: nombreUpper, tipo: tipo };
     const nuevaLista = [...categorias];
     const indexFav = nuevaLista.findIndex(c => c.nombre === "Favoritos");
-    
     if (indexFav !== -1) nuevaLista.splice(indexFav, 0, nuevaCategoriaObj);
     else nuevaLista.push(nuevaCategoriaObj);
-    
     await guardarCategorias(nuevaLista);
   };
 
   const eliminarCategoria = async (e, catNombreAEliminar) => {
     if (e && e.stopPropagation) e.stopPropagation();
     if (catNombreAEliminar === "Todos" || catNombreAEliminar === "Favoritos") return;
-    
     if (window.confirm(`¿Seguro que quieres eliminar la categoría "${catNombreAEliminar}"?`)) {
       const nuevaLista = categorias.filter(c => c.nombre !== catNombreAEliminar);
       await guardarCategorias(nuevaLista);
@@ -139,16 +128,12 @@ export function useRestaurantes() {
   const editarCategoria = async (index, nombreNuevoInput) => {
     const catVieja = categorias[index];
     if (["Todos", "Favoritos"].includes(catVieja.nombre)) return;
-
     const nombreNuevo = nombreNuevoInput?.toUpperCase();
     if (!nombreNuevo || nombreNuevo === catVieja.nombre) return;
-    
     try {
       const nuevaLista = [...categorias];
       nuevaLista[index] = { ...nuevaLista[index], nombre: nombreNuevo };
       await guardarCategorias(nuevaLista);
-      
-      // Actualizar automáticamente todos los restaurantes que tenían la categoría vieja
       const q = query(collection(db, "restaurante"), where("categoria", "==", catVieja.nombre));
       const querySnapshot = await getDocs(q);
       const batchPromises = querySnapshot.docs.map(restDoc => 
@@ -159,7 +144,6 @@ export function useRestaurantes() {
     } catch (error) { console.error("Error al editar categoría:", error); }
   };
 
-  // --- MÉTRICAS ---
   const registrarVisitaGeneral = async () => {
     if (sessionStorage.getItem("pisingo_visita_activa")) return;
     try {
@@ -195,17 +179,14 @@ export function useRestaurantes() {
       const docs = querySnapshot.docs.map(d => ({ 
         ...d.data(), id: d.id, fechaJS: d.data().fecha?.toDate() 
       }));
-
       const filtrados = docs.filter(d => 
         d.fechaJS && d.fechaJS.getMonth() === parseInt(mesSeleccionado) && 
         d.fechaJS.getFullYear() === new Date().getFullYear()
       );
-
       const conteo = filtrados.reduce((acc, curr) => {
         acc[curr.nombreRestaurante] = (acc[curr.nombreRestaurante] || 0) + 1;
         return acc;
       }, {});
-
       const listaOrdenada = Object.entries(conteo)
         .map(([nombre, clics]) => ({ nombre, clics }))
         .sort((a, b) => {
@@ -223,21 +204,18 @@ export function useRestaurantes() {
       const q = query(collection(db, "metricas"), where("nombreRestaurante", "==", nombreRestaurante));
       const querySnapshot = await getDocs(q);
       const anioActual = new Date().getFullYear();
-      
       const promesasBorrado = querySnapshot.docs
         .filter(docSnap => {
           const fecha = docSnap.data().fecha?.toDate();
           return fecha && fecha.getMonth() === parseInt(mesFiltro) && fecha.getFullYear() === anioActual;
         })
         .map(docRef => deleteDoc(doc(db, "metricas", docRef.id)));
-
       await Promise.all(promesasBorrado);
       alert("¡Registros limpiados! ✅");
       obtenerMetricas(); 
     } catch (error) { console.error("Error al eliminar métricas:", error); }
   };
 
-  // --- DATOS PRINCIPALES ---
   const obtenerDatos = useCallback(async () => {
     setCargando(true);
     try {
@@ -250,8 +228,8 @@ export function useRestaurantes() {
 
       const docs = querySnapshot.docs.map(doc => {
         const data = doc.data();
-        const hApertura = data.horario?.apertura ?? 0;
-        const hCierre = data.horario?.cierre ?? 0;
+        const hApertura = Number(data.horario?.apertura ?? data.hAperturaRaw ?? 0);
+        const hCierre = Number(data.horario?.cierre ?? data.hCierreRaw ?? 0);
         return { 
           ...data, 
           id: doc.id,
@@ -317,33 +295,32 @@ export function useRestaurantes() {
     window.open(`https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(texto)}`, '_blank');
   };
 
- // --- FILTRADO ROBUSTO (NOMBRE Y CATEGORÍA) ---
-const listaFiltrada = restaurantesFB.filter(res => {
-  // 1. Limpiamos la búsqueda y el nombre del restaurante
-  const nombreRes = res.nombre?.toString().toLowerCase().trim() || "";
-  const textoBusqueda = busqueda.toLowerCase().trim();
-  
-  const coincideNombre = nombreRes.includes(textoBusqueda);
-
-  // 2. Limpiamos la categoría (lo que arregla lo de GOURMET)
-  const catRestaurante = res.categoria?.toString().toUpperCase().trim() || "";
-  const catFiltro = filtroCategoria.toUpperCase().trim();
-
-  const coincideCategoria = 
-    filtroCategoria === "Todos" || 
-    (filtroCategoria === "Favoritos" 
-      ? favoritos.includes(res.id) 
-      : catRestaurante === catFiltro);
-
-  return coincideNombre && coincideCategoria;
-});
+  const listaFiltrada = restaurantesFB.filter(res => {
+    const nombreRes = res.nombre?.toString().toLowerCase().trim() || "";
+    const textoBusqueda = busqueda.toLowerCase().trim();
+    const coincideNombre = nombreRes.includes(textoBusqueda);
+    const catRestaurante = res.categoria?.toString().toUpperCase().trim() || "";
+    const catFiltro = filtroCategoria.toUpperCase().trim();
+    const coincideCategoria = 
+      filtroCategoria === "Todos" || 
+      (filtroCategoria === "Favoritos" 
+        ? favoritos.includes(res.id) 
+        : catRestaurante === catFiltro);
+    return coincideNombre && coincideCategoria;
+  });
 
   const obtenerEstadoEnVivo = (hAperturaRaw, hCierreRaw) => {
-    const ahora = horaActual.getHours() + horaActual.getMinutes() / 60;
-    const estaAbierto = hCierreRaw > hAperturaRaw 
-      ? (ahora >= hAperturaRaw && ahora < hCierreRaw)
-      : (ahora >= hAperturaRaw || ahora < hCierreRaw);
-      
+    const horaActualInt = new Date().getHours();
+    const apertura = Number(hAperturaRaw);
+    const cierre = Number(hCierreRaw);
+    
+    let estaAbierto = false;
+    if (cierre > apertura) {
+      estaAbierto = horaActualInt >= apertura && horaActualInt < cierre;
+    } else {
+      estaAbierto = horaActualInt >= apertura || horaActualInt < cierre;
+    }
+
     return estaAbierto 
       ? { abierto: true, texto: "Abierto ahora", clase: "abierto" }
       : { abierto: false, texto: "Cerrado", clase: "cerrado" };
