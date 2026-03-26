@@ -146,6 +146,7 @@ export default function Navbar({
                 { id: 'consultorios', label: '🩺 CONSULTORIOS' },
                 { id: 'heladeria', label: '🍦 HELADERÍA' },
                 { id: 'belleza', label: ' 👨‍🦱👩‍🦰BELLEZA' },
+                { id: 'deportes', label: '🏋️⚽ DEPORTES'},
                 { id: 'perfumes', label: '🧴 PERFUMES'},
                 { id: 'cocteles', label: '🍹 COCTELES' },
                 { id: 'estanquillos', label: '🍾 ESTANQUILLOS'}

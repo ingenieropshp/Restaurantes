@@ -176,7 +176,8 @@ export default function AdminDashboard({
               <option value="gastronomia">🍴 gastronomia</option>
               <option value="consultorios">🏥 consultorios</option>
               <option value="heladeria">🍦 heladeria</option>
-              <option value="belleza">👨‍🦱 belleza</option>
+              <option value="belleza">👨‍🦱👩‍🦰belleza</option>
+              <option value="deportes">🏋️⚽ deportes</option>
               <option value="perfumes">🧴 perfumes</option>
               <option value="cocteles">🍹 cocteles</option>
               <option value="estanquillos">🍾 estanquillos</option>

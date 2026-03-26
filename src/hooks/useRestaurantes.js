@@ -107,7 +107,7 @@ export function useRestaurantes() {
       alert("Esta categoría ya existe.");
       return;
     }
-    const tipo = tipoNuevo || prompt("¿A qué sección pertenece? (gastronomia, consultorios, heladeria, belleza, perfumes, cocteles o estanquillos)")?.toLowerCase() || "restaurantes";
+    const tipo = tipoNuevo || prompt("¿A qué sección pertenece? (gastronomia, consultorios, heladeria, belleza, deportes, perfumes, cocteles o estanquillos)")?.toLowerCase() || "restaurantes";
     const nuevaCategoriaObj = { nombre: nombreUpper, tipo: tipo };
     const nuevaLista = [...categorias];
     const indexFav = nuevaLista.findIndex(c => c.nombre === "Favoritos");
@@ -219,7 +219,9 @@ export function useRestaurantes() {
   const obtenerDatos = useCallback(async () => {
     setCargando(true);
     try {
+      // Obtenemos todos los documentos sin filtro de orden para no perder los antiguos
       const querySnapshot = await getDocs(collection(db, "restaurante"));
+      
       const formatoAMPM = (h) => {
         if (h === 0 || h === 24) return "12:00 AM";
         if (h === 12) return "12:00 PM";
@@ -240,12 +242,19 @@ export function useRestaurantes() {
         };
       });
 
-      setRestaurantesFB(docs);
+      // Ordenamos en el frontend para que los antiguos sin campo fechaCreacion no desaparezcan
+      const docsOrdenados = docs.sort((a, b) => {
+        const fechaA = a.fechaCreacion?.seconds || 0;
+        const fechaB = b.fechaCreacion?.seconds || 0;
+        return fechaA - fechaB; // Orden ascendente (Antiguos primero)
+      });
+
+      setRestaurantesFB(docsOrdenados);
 
       const params = new URLSearchParams(window.location.search);
       const compartidoId = params.get('id');
       if (compartidoId) {
-        const encontrado = docs.find(r => r.id === compartidoId);
+        const encontrado = docsOrdenados.find(r => r.id === compartidoId);
         if (encontrado) setSeleccionado(encontrado);
       }
     } catch (error) { console.error("Error cargando:", error); } 
@@ -273,7 +282,7 @@ export function useRestaurantes() {
   try {
     const restauranteRef = doc(db, "RESTAURANTES", id);
     await updateDoc(restauranteRef, {
-      menuUrl: [] // Limpiamos el array en Firebase
+      menuUrl: [] 
     });
     alert("Menú eliminado correctamente");
   } catch (error) {
@@ -281,7 +290,6 @@ export function useRestaurantes() {
   }
 };
 
-  // --- NUEVA FUNCIÓN PARA ELIMINAR IMAGEN DE PERFIL ---
   const eliminarImagenPerfil = async (id) => {
     if (!window.confirm("¿Deseas eliminar la foto de perfil?")) return;
     try {
@@ -375,7 +383,6 @@ export function useRestaurantes() {
     } catch (error) { alert("Error al subir archivo."); }
   };
 
-  // --- LOGICA SALUD ---
   const obtenerSubmenusSalud = async () => {
     try {
       const q = query(collection(db, "configuracion_salud"), orderBy("nombre", "asc"));
@@ -424,6 +431,6 @@ export function useRestaurantes() {
     agregarRestaurante, enviarPedidoWhatsApp, tema, toggleTema,
     añadirCategoria, eliminarCategoria, editarCategoria, seleccionado, setSeleccionado,
     eliminarMenu, eliminarImagenPerfil,
-    submenusSalud, agregarSalud, borrarSalud // Exportados para Salud
+    submenusSalud, agregarSalud, borrarSalud 
   };
 }
