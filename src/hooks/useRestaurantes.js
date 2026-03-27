@@ -219,7 +219,6 @@ export function useRestaurantes() {
   const obtenerDatos = useCallback(async () => {
     setCargando(true);
     try {
-      // Obtenemos todos los documentos sin filtro de orden para no perder los antiguos
       const querySnapshot = await getDocs(collection(db, "restaurante"));
       
       const formatoAMPM = (h) => {
@@ -242,11 +241,10 @@ export function useRestaurantes() {
         };
       });
 
-      // Ordenamos en el frontend para que los antiguos sin campo fechaCreacion no desaparezcan
       const docsOrdenados = docs.sort((a, b) => {
         const fechaA = a.fechaCreacion?.seconds || 0;
         const fechaB = b.fechaCreacion?.seconds || 0;
-        return fechaA - fechaB; // Orden ascendente (Antiguos primero)
+        return fechaA - fechaB; 
       });
 
       setRestaurantesFB(docsOrdenados);
@@ -316,9 +314,13 @@ export function useRestaurantes() {
   };
 
   const enviarPedidoWhatsApp = (e, res) => {
-    e.stopPropagation();
+    if (e && e.stopPropagation) e.stopPropagation();
     registrarClickMetrica(res);
-    const telefonoLimpio = res.telefono.toString().replace(/\D/g, '');
+    
+    // Limpieza de teléfono y anteponer 57 si es necesario
+    let telefonoLimpio = res.telefono.toString().replace(/\D/g, '');
+    if (telefonoLimpio.length === 10) telefonoLimpio = "57" + telefonoLimpio;
+    
     const saludoCustom = res.mensajePersonalizado?.trim() || `¡Hola! Quiero hacer un pedido en ${res.nombre}.`;
     const texto = `PISINGO PEDIDOS 🦆\n\n${saludoCustom}\n\n¿Me confirman disponibilidad?`;
     window.open(`https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(texto)}`, '_blank');
@@ -351,8 +353,8 @@ export function useRestaurantes() {
     }
 
     return estaAbierto 
-      ? { abierto: true, texto: "Abierto ahora", clase: "abierto" }
-      : { abierto: false, texto: "Cerrado", clase: "cerrado" };
+      ? { abierto: true, texto: "Abierto ahora", clase: "open" }
+      : { abierto: false, texto: "Cerrado", clase: "closed" };
   };
 
   const subirImagenCloudinary = async (e, id, campo) => {

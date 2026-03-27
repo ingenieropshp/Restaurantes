@@ -1,16 +1,25 @@
 {
   "short_name": "PISIN",
-  "name": "PISIN",
+  "name": "PISIN - Food & Delivery",
+  "description": "Pide tu comida favorita en PISIN",
   "icons": [
     {
       "src": "logo-pwa.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "logo-pwa.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#0d0d0d",
-  "background_color": "#0d0d0d"
+  "background_color": "#0d0d0d",
+  "scope": "/"
 }

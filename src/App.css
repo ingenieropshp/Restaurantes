@@ -1,37 +1,116 @@
 /* --- CONFIGURACIÓN DE COLORES Y TEMAS --- */
+/* --- CONFIGURACIÓN DE COLORES MODO OSCURO (ESTILO FACEBOOK) --- */
 :root {
-  /* Colores Neón que se mantienen en ambos modos */
+  /* Colores base que se mantienen */
   --neon-cyan: #00f3ff;
   --neon-pink: #ff0055;
-  --neon-green: #25D366;
-  --neon-orange: #ff9800; 
   --fb-blue: #1877F2;
 
-  /* Variables dinámicas (Modo Oscuro por defecto) */
-  --dark-bg: #0d0d0d;
-  --card-bg: #1a1a1a;
-  --text-color: #ffffff;
-  --border-color: #333333;
-  --input-bg: rgba(255, 255, 255, 0.05);
-  --modal-bg: #111111;
+  /* VARIABLES MODO OSCURO (FACEBOOK DARK) */
+  --dark-bg: #18191a;          /* Fondo principal FB */
+  --app-background: #18191a; 
+  --card-bg: #242526;          /* Fondo de tarjetas FB */
+  --text-color: #e4e6eb;       /* Texto principal (Gris muy claro) */
+  --text-secondary: #b0b3b8;   /* Texto secundario FB */
+  --border-color: #3e4042;     /* Bordes sutiles FB */
+  --input-bg: #3a3b3c;         /* Fondo de buscador/inputs FB */
+  --modal-bg: #242526;
+  --accent: #2e89ff;           /* Azul brillante de selección FB */
 }
 
-/* --- VARIABLES PARA MODO CLARO --- */
+/* --- VARIABLES PARA MODO CLARO (ESTILO PROFESIONAL FACEBOOK) --- */
 [data-theme='light'] {
   --dark-bg: #f0f2f5;
+  --app-background: #edeff0; /* Color sólido profesional */
+  
   --card-bg: #ffffff;
-  --text-color: #1a1a1a;
-  --border-color: #dddddd;
-  --input-bg: #ffffff;
+  --text-color: #1c1e21; /* Gris oscuro FB */
+  --border-color: #ebedf0;
+  --input-bg: #f0f2f5;
   --modal-bg: #ffffff;
+  --accent: #1877f2; /* Azul corporativo */
+}
+
+/* --- ESTILOS ADICIONALES PARA MODO CLARO (NO AFECTAN AL OSCURO) --- */
+[data-theme='light'] body {
+    background-image: none;
+    background-color: var(--app-background);
+}
+
+/* --- ADAPTACIÓN DEL NAVBAR (HAMBURGUESA) --- */
+
+/* 1. Ajuste General del Navbar */
+.hamburguesa-nav {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 280px;
+  height: 100vh;
+  z-index: 2000;
+  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* Valores por defecto (Modo Oscuro) */
+  background: rgba(10, 11, 15, 0.95);
+  backdrop-filter: blur(15px);
+  border-right: 1px solid var(--accent);
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* 2. Ajuste para Modo Claro */
+[data-theme='light'] .hamburguesa-nav {
+  background: #ffffff; /* Fondo blanco sólido tipo FB */
+  backdrop-filter: none;
+  border-right: 1px solid #dddfe2;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+}
+
+/* 3. Ajuste de los Links (Modo Oscuro por defecto) */
+.hamburguesa-links li {
+  padding: 15px 20px;
+  font-size: 1.1rem;
+  color: #ffffff; /* Blanco en modo oscuro */
+  cursor: pointer;
+  transition: 0.3s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 4. Ajuste de los Links para Modo Claro */
+[data-theme='light'] .hamburguesa-links li {
+  color: #1c1e21; /* Texto oscuro tipo FB */
+  border-bottom: 1px solid #f0f2f5;
+}
+
+/* 5. Efectos Hover Adaptativos */
+.hamburguesa-links li:hover {
+  color: var(--accent);
+  padding-left: 30px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme='light'] .hamburguesa-links li:hover {
+  background: #f2f2f2;
+  color: #1877f2;
+}
+
+/* 6. El Botón (Las 3 rayitas) Adaptativo */
+.hamburguesa-btn span {
+  width: 100%;
+  height: 3px;
+  background-color: var(--accent); /* Cambia automáticamente por la variable */
+  transition: 0.3s;
+  border-radius: 5px;
+  box-shadow: 0 0 5px var(--accent);
+}
+
+/* Quitar sombra neón en modo claro para el botón hamburguesa */
+[data-theme='light'] .hamburguesa-btn span {
+  box-shadow: none;
 }
 
 body {
   background-color: var(--dark-bg);
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-image: none; /* Quitamos degradados para ser fieles al estilo FB */
   color: var(--text-color);
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* --- BOTÓN DE CAMBIO DE TEMA --- */
@@ -64,12 +143,12 @@ body {
   font-size: 2.2rem;
   font-weight: 800;
   text-align: center;
-  color: var(--text-color);
+  color: #ffffff;
   text-transform: uppercase;
   margin: 20px 0 40px 0;
   letter-spacing: 2px;
   line-height: 1.1;
-  text-shadow: 0 0 10px rgb(251, 253, 255);
+  text-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -96,56 +175,55 @@ body {
   .title span { font-size: 3.5rem; }
 }
 
-/* --- BUSCADOR Y CATEGORÍAS --- */
+/* Buscador estilo Facebook Search */
 .search-input {
-  width: 90%;
-  max-width: 500px;
-  padding: 15px 25px;
-  border-radius: 50px;
-  border: 2px solid var(--neon-cyan);
   background: var(--input-bg);
+  border: none;
   color: var(--text-color);
-  font-size: 1.1rem;
-  outline: none;
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-  margin-bottom: 50px;
-  transition: 0.3s;
+  box-shadow: none;
 }
 
+.search-input:focus {
+  background: #4e4f50;
+  border: 1px solid var(--accent);
+}
+
+/* Botones de categorías estilo "Pills" de FB */
 .category-btn {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
+  background: #3a3b3c;
   color: var(--text-color);
-  padding: 8px 20px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: 0.3s;
+  border: none;
+  font-weight: 600;
+}
+
+.category-btn:hover {
+  background: #4e4f50;
 }
 
 .category-btn.active {
-  background: var(--neon-cyan);
-  color: black;
-  font-weight: bold;
-  border-color: var(--neon-cyan);
+  background: rgba(45, 136, 255, 0.2);
+  color: #2d88ff;
 }
-
 /* --- TARJETAS Y EFECTO SHEEN --- */
 .restaurant-list {
-  display: grid;
+  display: grid;  
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 30px;
 }
 
+/* Tarjetas con bordes sutiles y sin brillos neón agresivos */
 .restaurant-card {
   background: var(--card-bg);
-  border-radius: 25px;
   border: 1px solid var(--border-color);
-  overflow: hidden;
-  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  color: var(--text-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+.restaurant-card:hover {
+  background: #3a3b3c; /* Efecto hover de FB */
+  transform: none;      /* Facebook no suele mover las tarjetas, pero si quieres dejarlo, mantén el transform */
+  border-color: #4e4f50;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
 /* El efecto de brillo (Sheen) */
 .restaurant-card::after {
   content: "";
@@ -231,7 +309,10 @@ body {
   background-color: #ffffff;
 }
 
-.card-info { padding: 20px; }
+/* Texto secundario en tarjetas */
+.card-info p {
+  color: var(--text-secondary);
+}
 .card-info p:hover { color: var(--neon-cyan); }
 
 /* --- MODAL --- */
@@ -294,7 +375,24 @@ body {
 
 /* --- BOTONES DE ACCIÓN --- */
 .exit-admin-btn { background: var(--neon-pink); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
-.order-btn { width: calc(100% - 20px); margin: 20px 10px; padding: 16px; background: var(--neon-green); color: white; border: none; border-radius: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px var(--neon-green); }
+.order-btn { 
+  width: calc(100% - 40px); 
+  margin: 20px; 
+  padding: 16px; 
+  background: #25D366; /* Color oficial WhatsApp */
+  color: white; 
+  border: none; 
+  border-radius: 12px; 
+  font-size: 1.1rem; 
+  font-weight: bold; 
+  cursor: pointer; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
 .close-btn { position: absolute; top: 15px; right: 15px; width: 38px; height: 38px; background-color: var(--neon-pink); color: white; border: none; border-radius: 50%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2100; }
 
 .action-buttons-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; padding: 0 10px; }
@@ -419,19 +517,11 @@ table tr:hover {
     background: rgba(0, 242, 255, 0.05);
 }
 
-/* Contenedor del menú lateral */
+/* --- NAVBAR (HAMBURGUESA) MODO OSCURO FB --- */
 .hamburguesa-nav {
-  position: fixed;
-  top: 0;
-  left: -100%; /* Escondido a la izquierda */
-  width: 280px;
-  height: 100vh;
-  background: rgba(10, 11, 15, 0.98);
-  backdrop-filter: blur(10px);
-  z-index: 2000;
-  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
-  border-right: 1px solid var(--accent);
+  background: #242526;
+  border-right: 1px solid var(--border-color);
+  backdrop-filter: none; /* FB no usa mucho blur en desktop dark */
 }
 
 .hamburguesa-nav.abierto {
@@ -448,17 +538,13 @@ table tr:hover {
 }
 
 .hamburguesa-links li {
-  padding: 15px 0;
-  font-size: 1.1rem;
-  color: white;
-  cursor: pointer;
-  transition: 0.3s;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .hamburguesa-links li:hover {
+  background: #3a3b3c;
   color: var(--accent);
-  padding-left: 10px;
 }
 
 /* El Botón (Las 3 rayitas) */
@@ -652,4 +738,57 @@ table tr:hover {
 
 .aparecer {
   animation: aparecer 0.4s ease-out;
+}
+
+
+/* --- INDICADORES DE ESTADO (LUCES LED) --- */
+.status-badge { 
+  font-size: 0.9rem; 
+  font-weight: 600;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 10px; 
+  margin-bottom: 15px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Base del círculo de luz */
+.dot { 
+  width: 12px; 
+  height: 12px; 
+  border-radius: 50%; 
+  position: relative;
+}
+
+/* LUZ VERDE (ABIERTO) */
+.dot.open { 
+  background: #31a24c; /* Verde Facebook */
+  box-shadow: 0 0 10px #31a24c, 0 0 20px rgba(49, 162, 76, 0.5);
+  animation: pulse-green 2s infinite;
+}
+
+/* LUZ ROJA (CERRADO) */
+.dot.closed { 
+  background: #f02849; /* Rojo Facebook */
+  box-shadow: 0 0 10px #f02849, 0 0 20px rgba(240, 40, 73, 0.5);
+  animation: pulse-red 2s infinite;
+}
+
+/* Animaciones de pulsación para las luces */
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(49, 162, 76, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(49, 162, 76, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(49, 162, 76, 0); }
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(240, 40, 73, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(240, 40, 73, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(240, 40, 73, 0); }
 }
