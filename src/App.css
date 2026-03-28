@@ -2,6 +2,7 @@
 /* --- CONFIGURACIÓN DE COLORES MODO OSCURO (ESTILO FACEBOOK) --- */
 :root {
   /* Colores base que se mantienen */
+  --safe-top: env(safe-area-inset-top, 0px);
   --neon-cyan: #00f3ff;
   --neon-pink: #ff0055;
   --fb-blue: #1877F2;
@@ -74,6 +75,16 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.menu-hamburguesa {
+  position: absolute; /* o fixed, según lo tengas */
+  
+  /* Esto suma 15px extra al espacio del notch del iPhone */
+  top: calc(15px + env(safe-area-inset-top)); 
+  
+  left: 20px;
+  z-index: 1000;
+}
+
 /* 4. Ajuste de los Links para Modo Claro */
 [data-theme='light'] .hamburguesa-links li {
   color: #1c1e21; /* Texto oscuro tipo FB */
@@ -108,6 +119,7 @@
 }
 
 body {
+  padding-top: var(--safe-top);
   background-color: var(--dark-bg);
   background-image: none; /* Quitamos degradados para ser fieles al estilo FB */
   color: var(--text-color);

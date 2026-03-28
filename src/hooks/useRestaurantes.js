@@ -18,7 +18,7 @@ export function useRestaurantes() {
     { nombre: "Favoritos", tipo: "sistema" }
   ]);
   
-  const [branding, setBranding] = useState({ titulo: "PISINGO", slogan: "FOOD & DELIVERY" });
+  const [branding, setBranding] = useState({ titulo: "PISIN", slogan: "FOOD & DELIVERY" });
   const [metricasData, setMetricasData] = useState([]);
   const [mesFiltro, setMesFiltro] = useState(new Date().getMonth());
   const [horaActual, setHoraActual] = useState(new Date()); 
@@ -56,7 +56,7 @@ export function useRestaurantes() {
       if (docSnap.exists()) {
         setBranding(docSnap.data());
       } else {
-        const defaultBranding = { titulo: "PISINGO", slogan: "FOOD & DELIVERY" };
+        const defaultBranding = { titulo: "PISIN", slogan: "FOOD & DELIVERY" };
         await setDoc(docRef, defaultBranding);
         setBranding(defaultBranding);
       }
@@ -322,7 +322,7 @@ export function useRestaurantes() {
     if (telefonoLimpio.length === 10) telefonoLimpio = "57" + telefonoLimpio;
     
     const saludoCustom = res.mensajePersonalizado?.trim() || `¡Hola! Quiero hacer un pedido en ${res.nombre}.`;
-    const texto = `PISINGO PEDIDOS 🦆\n\n${saludoCustom}\n\n¿Me confirman disponibilidad?`;
+    const texto = `PISIN PEDIDOS 🦆\n\n${saludoCustom}\n\n¿Me confirman disponibilidad?`;
     window.open(`https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(texto)}`, '_blank');
   };
 
